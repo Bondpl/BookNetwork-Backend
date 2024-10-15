@@ -22,6 +22,9 @@
 - **status**: `Enum` (`AVAILABLE`, `BORROWED`)
 - **averageRating**: `Double`
 
+**Relationships**:
+**Many-to-One with Borrower (User)**: Many books can be borrowed by one user.
+
 ### Transaction history:
 
 - **id**: `Long` (Primary Key)
