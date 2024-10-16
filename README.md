@@ -1,3 +1,7 @@
+## Project:
+- Book Social Network 
+Users can lend and borrow books from others in the community. Each book would have a rental history, and users could rate the books.
+
 ### User:
 
 - **id**: `Long` (Primary Key)
