@@ -7,6 +7,7 @@ Users can lend and borrow books from others in the community. Each book would ha
 - **id**: `Long` (Primary Key)
 - **name**: `String`
 - **email**: `String`
+- **password**: `String`
 - **description**: `String`
 - **profilePictureUrl**: `String`
 - **role**: `Enum (User, Admin, Banned)`
