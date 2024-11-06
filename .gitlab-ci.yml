@@ -2,10 +2,10 @@ stages:
   - build
   - test
 
-image: openjdk:17-slim # Use a Docker image that includes Java
+image: openjdk:21-slim
 
 variables:
-  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle" # Cache Gradle dependencies locally
+  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
 
 build:
   stage: build

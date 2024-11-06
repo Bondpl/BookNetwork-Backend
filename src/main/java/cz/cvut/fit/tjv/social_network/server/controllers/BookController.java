@@ -21,9 +21,19 @@ public class BookController {
         return bookService.getAllBooks();
     }
 
-    @GetMapping("/user/{uuid}")
+    @GetMapping("/user/borrowed/{uuid}")
     public Collection<Book> getBooksBorrowedByUser(@PathVariable UUID uuid) {
         return bookService.getBooksBorrowedByUser(uuid);
+    }
+
+    @GetMapping("/user/owned/{uuid}")
+    public Collection<Book> getBooksOwnedByUser(@PathVariable UUID uuid) {
+        return bookService.getBooksOwnedByUser(uuid);
+    }
+
+    @GetMapping("/rating/{rating}")
+    public Collection<Book> getBooksByRatingGreaterThan(@PathVariable int rating) {
+        return bookService.findBooksByRatingGreaterThan(rating);
     }
 
     @GetMapping("/status/{status}")

@@ -1,5 +1,6 @@
 package cz.cvut.fit.tjv.social_network.server.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -17,12 +18,16 @@ public class Rating {
 
     @ManyToOne
     @NotNull(message = "Book is required")
+    @JsonBackReference
     private Book book;
 
     @ManyToOne
     @NotNull(message = "User is required")
+    @JsonBackReference
     private User user;
 
+    @NotNull(message = "Rating is required")
+    @JsonBackReference
     private int rating;
 
 }

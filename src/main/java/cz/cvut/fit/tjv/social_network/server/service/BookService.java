@@ -63,15 +63,13 @@ public class BookService {
 
         bookRepository.deleteById(bookUuid);
     }
-    
+
     public Collection<Book> findBooksByStatus(BookStatus status) {
-        return bookRepository.getBooksByBookStatus(status);
+        return bookRepository.findBooksByBookStatus(status);
     }
 
     public Collection<Book> getAllBooks() {
-        Collection<Book> books = bookRepository.findAll();
-        System.out.println(books);
-        return books;
+        return bookRepository.findAll();
     }
 
     public Collection<Book> getBooksBorrowedByUser(UUID userUuid) {
@@ -79,5 +77,21 @@ public class BookService {
         return transactions.stream()
                 .map(Transaction::getBook)
                 .collect(Collectors.toList());
+    }
+
+    public Collection<Book> getBooksOwnedByUser(UUID userUuid) {
+        return bookRepository.findBooksOwnedByOwner(userUuid);
+    }
+
+    public Book updateBook(Book book) {
+        return bookRepository.save(book);
+    }
+
+    public Collection<Book> findBooksByRatingGreaterThan(int minRating) {
+        return bookRepository.findBooksByRatingGreaterThan(minRating);
+    }
+
+    public Book getBookById(UUID uuid) {
+        return bookRepository.findById(uuid).orElse(null);
     }
 }

@@ -16,10 +16,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -171,7 +168,7 @@ public class BookServiceTest {
         book2.setUuid(UUID.randomUUID());
         book2.setBookStatus(status);
 
-        when(bookRepository.getBooksByBookStatus(status)).thenReturn(List.of(book, book2));
+        when(bookRepository.findBooksByBookStatus(status)).thenReturn(List.of(book, book2));
 
         Collection<Book> result = bookService.findBooksByStatus(status);
 
@@ -179,20 +176,20 @@ public class BookServiceTest {
         assertTrue(result.contains(book));
         assertTrue(result.contains(book2));
 
-        verify(bookRepository, times(1)).getBooksByBookStatus(status);
+        verify(bookRepository, times(1)).findBooksByBookStatus(status);
     }
 
     @Test
     void findBooksByStatus_NoBooks() {
         BookStatus status = BookStatus.AVAILABLE;
 
-        when(bookRepository.getBooksByBookStatus(status)).thenReturn(List.of());
+        when(bookRepository.findBooksByBookStatus(status)).thenReturn(List.of());
 
         Collection<Book> result = bookService.findBooksByStatus(status);
 
         assertEquals(0, result.size());
 
-        verify(bookRepository, times(1)).getBooksByBookStatus(status);
+        verify(bookRepository, times(1)).findBooksByBookStatus(status);
     }
 
     @Test
@@ -250,4 +247,34 @@ public class BookServiceTest {
         verify(transactionRepository, times(1)).findByBorrower_Uuid(userUuid);
     }
 
+    @Test
+    void GetBooksOwnedByUser() {
+
+        Book book1 = new Book();
+        book1.setUuid(bookUuid);
+        book1.setBookStatus(BookStatus.BORROWED);
+        book1.setOwner(user);
+
+        when(bookRepository.findBooksOwnedByOwner(userUuid)).thenReturn(Arrays.asList(book, book1));
+
+        Collection<Book> books = bookService.getBooksOwnedByUser(userUuid);
+        assertEquals(2, books.size());
+    }
+
+
+    @Test
+    void testUpdateBook() {
+        when(bookRepository.save(any(Book.class))).thenReturn(book);
+
+        book.setTitle("Updated Title");
+        book.setAuthor("Updated Author");
+        book.setBookStatus(BookStatus.BORROWED);
+        Book updatedBook = bookService.updateBook(book);
+
+        verify(bookRepository).save(book);
+
+        assertEquals("Updated Title", updatedBook.getTitle());
+        assertEquals("Updated Author", updatedBook.getAuthor());
+        assertEquals(BookStatus.BORROWED, updatedBook.getBookStatus());
+    }
 }
