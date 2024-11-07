@@ -1,25 +1,19 @@
-package cz.cvut.fit.tjv.social_network.server.model;
+package cz.cvut.fit.tjv.social_network.server.dto.user;
 
-import jakarta.persistence.*;
+import cz.cvut.fit.tjv.social_network.server.model.Role;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.UUID;
 
-@Entity
 @Data
-@Table(name = "users")
-public class User {
+public class UserRequest {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID uuid = UUID.randomUUID();
+    private UUID uuid;
 
-    @Column(unique = true)
     @NotNull(message = "Username is required")
     private String username;
 
-    @Column(unique = true)
     @NotNull(message = "Email is required")
     private String email;
 
@@ -30,8 +24,6 @@ public class User {
 
     private String profilePictureUrl;
 
-    @Enumerated(EnumType.STRING)
     @NotNull(message = "Role is required")
     private Role role;
-
 }
