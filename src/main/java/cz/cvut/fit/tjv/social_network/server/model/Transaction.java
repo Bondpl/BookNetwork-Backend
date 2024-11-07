@@ -27,6 +27,7 @@ public class Transaction {
     @ManyToOne(fetch = FetchType.EAGER)
     private Book book;
 
+    @NotNull(message = "Status is required")
     @Enumerated(EnumType.STRING)
     private TransactionStatus status;
 }
