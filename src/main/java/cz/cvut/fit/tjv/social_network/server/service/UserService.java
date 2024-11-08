@@ -94,6 +94,10 @@ public class UserService {
     }
 
     public User updateUser(User user) {
+        UUID uuid = user.getUuid();
+        if (!userRepository.existsById(uuid)) {
+            throw new IllegalArgumentException("User with UUID " + uuid + " does not exist");
+        }
         return userRepository.save(user);
     }
 

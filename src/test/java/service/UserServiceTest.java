@@ -108,22 +108,25 @@ class UserServiceTest {
     void getUserById_Found() {
         UUID uuid = UUID.randomUUID();
         User user = new User();
+        user.setUuid(uuid);
         when(userRepository.findById(uuid)).thenReturn(Optional.of(user));
 
-        User foundUser = userService.getUserById(uuid);
+        User foundUser = userService.getUserById(user.getUuid());
 
         assertNotNull(foundUser);
+        assertEquals(uuid, foundUser.getUuid());
         verify(userRepository, times(1)).findById(uuid);
     }
 
     @Test
     void getUserById_NotFound() {
         UUID uuid = UUID.randomUUID();
+        UserIdRequest userIdRequest = new UserIdRequest();
+        userIdRequest.setUuid(uuid);
         when(userRepository.findById(uuid)).thenReturn(Optional.empty());
 
-        User foundUser = userService.getUserById(uuid);
-
-        assertNull(foundUser);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> userService.getUserById(uuid));
+        assertEquals("User with UUID " + uuid + " does not exist", exception.getMessage());
         verify(userRepository, times(1)).findById(uuid);
     }
 
@@ -187,12 +190,45 @@ class UserServiceTest {
 
     @Test
     void updateUser_Successful() {
+        UUID uuid = UUID.randomUUID();
+        UserRequest userRequest = new UserRequest();
+        userRequest.setUuid(uuid);
+        userRequest.setUsername("test");
+        userRequest.setEmail("232@gmail.com");
+        userRequest.setPassword("123");
+        userRequest.setDescription("test");
+        userRequest.setProfilePictureUrl("test");
+        userRequest.setRole(Role.USER);
+
         User user = new User();
-        when(userRepository.save(user)).thenReturn(user);
+        user.setUuid(uuid);
+        user.setUsername("test");
+        user.setEmail("123@gmail.com");
+        user.setPassword("123");
+        user.setDescription("test");
+        user.setProfilePictureUrl("test");
+        user.setRole(Role.USER);
+        when(userRepository.findById(userRequest.getUuid())).thenReturn(Optional.of(user));
 
         User updatedUser = userService.updateUser(user);
 
-        assertEquals(user, updatedUser);
+        assertNotNull(updatedUser);
+        assertEquals("test", updatedUser.getUsername());
+        assertEquals("232@gmail.com", updatedUser.getEmail());
+        assertEquals("test", updatedUser.getDescription());
+        assertEquals("test", updatedUser.getProfilePictureUrl());
+        assertEquals(Role.USER, updatedUser.getRole());
         verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    void updateUser_UserNotFound() {
+        UUID uuid = UUID.randomUUID();
+        User user = new User();
+        user.setUuid(uuid);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> userService.updateUser(user));
+        assertEquals("User with UUID " + uuid + " does not exist", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
     }
 }
