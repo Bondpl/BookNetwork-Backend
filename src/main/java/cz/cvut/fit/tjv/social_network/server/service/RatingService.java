@@ -29,7 +29,6 @@ public class RatingService {
         return ratingRepository.findById(uuid).orElse(null);
     }
     
-
     public Rating updateRating(Rating rating) {
         return ratingRepository.save(rating);
     }
