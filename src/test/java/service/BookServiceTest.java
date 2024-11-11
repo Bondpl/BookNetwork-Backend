@@ -1,5 +1,6 @@
 package service;
 
+import cz.cvut.fit.tjv.social_network.server.dto.book.BookRequest;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.BookStatus;
 import cz.cvut.fit.tjv.social_network.server.model.Transaction;
@@ -109,19 +110,33 @@ public class BookServiceTest {
 
     @Test
     void createBook_Success() {
-        when(bookRepository.save(book)).thenReturn(book);
+        BookRequest bookRequest = new BookRequest();
+        bookRequest.setTitle("Title");
+        bookRequest.setAuthor("Author");
+        bookRequest.setBookStatus(BookStatus.AVAILABLE);
+        bookRequest.setOwner(user);
 
-        Book result = bookService.createBook(book);
+        when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
+        when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertEquals(book, result);
-        verify(bookRepository, times(1)).save(book);
+        Book result = bookService.createBook(bookRequest);
+
+        assertEquals("Title", result.getTitle());
+        assertEquals("Author", result.getAuthor());
+        assertEquals(BookStatus.AVAILABLE, result.getBookStatus());
+        assertEquals(user, result.getOwner());
+        verify(bookRepository, times(1)).save(any(Book.class));
     }
 
     @Test
-    void CreateBook_NoOwner() {
-        book.setOwner(null);
+    void createBook_NoOwner() {
+        BookRequest bookRequest = new BookRequest();
+        bookRequest.setTitle("Title");
+        bookRequest.setAuthor("Author");
+        bookRequest.setBookStatus(BookStatus.AVAILABLE);
+        
 
-        assertThrows(RuntimeException.class, () -> bookService.createBook(book));
+        assertThrows(RuntimeException.class, () -> bookService.createBook(bookRequest));
     }
 
     @Test
