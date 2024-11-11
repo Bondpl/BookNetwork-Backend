@@ -1,5 +1,6 @@
 package cz.cvut.fit.tjv.social_network.server.controllers;
 
+import cz.cvut.fit.tjv.social_network.server.dto.book.BookRequest;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.BookStatus;
 import cz.cvut.fit.tjv.social_network.server.service.BookService;
@@ -14,7 +15,8 @@ import java.util.UUID;
 @RequestMapping("/books")
 @AllArgsConstructor
 public class BookController {
-    private BookService bookService;
+
+    private final BookService bookService;
 
     @GetMapping
     public Collection<Book> getAllBooks() {
@@ -42,7 +44,7 @@ public class BookController {
     }
 
     @PostMapping
-    public Book createBook(@Valid @RequestBody Book book) {
-        return bookService.createBook(book);
+    public Book createBook(@Valid @RequestBody BookRequest bookRequest) {
+        return bookService.createBook(bookRequest);
     }
 }

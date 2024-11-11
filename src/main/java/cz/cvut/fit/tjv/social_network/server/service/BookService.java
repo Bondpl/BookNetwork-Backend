@@ -1,5 +1,6 @@
 package cz.cvut.fit.tjv.social_network.server.service;
 
+import cz.cvut.fit.tjv.social_network.server.dto.book.BookRequest;
 import cz.cvut.fit.tjv.social_network.server.model.*;
 import cz.cvut.fit.tjv.social_network.server.repository.BookRepository;
 import cz.cvut.fit.tjv.social_network.server.repository.TransactionRepository;
@@ -18,6 +19,23 @@ public class BookService {
     private BookRepository bookRepository;
     private UserRepository userRepository;
     private TransactionRepository transactionRepository;
+
+    // Converts BookRequest DTO to Book entity
+    private Book convertToBook(BookRequest bookRequest) {
+        Book book = new Book();
+        book.setTitle(bookRequest.getTitle());
+        book.setAuthor(bookRequest.getAuthor());
+        book.setIsbn(bookRequest.getIsbn());
+        book.setBookStatus(bookRequest.getBookStatus());
+        book.setCoverUrl(bookRequest.getCoverUrl());
+
+        // Fetch the owner from the database
+        User owner = userRepository.findById(bookRequest.getOwner().getUuid())
+                .orElseThrow(() -> new RuntimeException("Owner not found"));
+        book.setOwner(owner);
+
+        return book;
+    }
 
     public Book borrowBook(UUID bookUuid, UUID userUuid) {
         Book book = bookRepository.findById(bookUuid)
@@ -39,17 +57,17 @@ public class BookService {
                 .orElseThrow(() -> new RuntimeException("Lender not found"));
         transaction.setLender(lender);
 
-
         transaction.setStatus(TransactionStatus.ONGOING);
         transactionRepository.save(transaction);
 
         return book;
     }
 
-    public Book createBook(Book book) {
-        if (book.getOwner() == null) {
+    public Book createBook(BookRequest bookRequest) {
+        if (bookRequest.getOwner() == null) {
             throw new RuntimeException("Owner is required");
         }
+        Book book = convertToBook(bookRequest);
         return bookRepository.save(book);
     }
 
