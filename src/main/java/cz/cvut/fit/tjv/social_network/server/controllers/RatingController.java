@@ -37,10 +37,10 @@ public class RatingController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid book or user ID");
         }
 
-        Rating rating = ratingService.SetRating(book, user, ratingRequest.getRating());
+        Rating rating = ratingService.CreateRating(book, user, ratingRequest.getRating());
         return ResponseEntity.status(HttpStatus.CREATED).body(rating);
     }
-    
+
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteRating(@RequestBody RatingIdRequest ratingIdRequest) {
         boolean deleted = ratingService.deleteRatingById(ratingIdRequest.getRatingId());

@@ -34,7 +34,7 @@ class RatingServiceTest {
     }
 
     @Test
-    void testSetRating() {
+    void testCreateRating() {
         Book book = new Book();
         User user = new User();
         int ratingValue = 5;
@@ -46,7 +46,7 @@ class RatingServiceTest {
 
         when(ratingRepository.save(any(Rating.class))).thenReturn(rating);
 
-        Rating savedRating = ratingService.SetRating(book, user, ratingValue);
+        Rating savedRating = ratingService.CreateRating(book, user, ratingValue);
 
         assertNotNull(savedRating);
         assertEquals(book, savedRating.getBook());

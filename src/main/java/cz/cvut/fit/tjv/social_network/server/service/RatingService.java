@@ -1,5 +1,6 @@
 package cz.cvut.fit.tjv.social_network.server.service;
 
+import cz.cvut.fit.tjv.social_network.server.exceptions.Exceptions;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.Rating;
 import cz.cvut.fit.tjv.social_network.server.model.User;
@@ -16,9 +17,17 @@ import java.util.UUID;
 public class RatingService {
     private RatingRepository ratingRepository;
 
-    public Rating SetRating(Book book, User user, int rating) {
-
+    public Rating CreateRating(Book book, User user, int rating) {
         Rating r = new Rating();
+
+        if (rating < 0 || rating > 5) {
+            throw new Exceptions.RatingNotInScopeException("Rating must be between 0 and 5");
+        }
+
+        if (ratingRepository.findByBookAndUser(book, user).isPresent()) {
+            throw new Exceptions.RatingAlreadyExistsException("Rating already exists");
+        }
+
         r.setBook(book);
         r.setUser(user);
         r.setRating(rating);
@@ -26,10 +35,16 @@ public class RatingService {
     }
 
     public Rating getRatingById(UUID uuid) {
+        if (uuid == null) {
+            throw new Exceptions.RatingNotFoundException("Rating not found");
+        }
         return ratingRepository.findById(uuid).orElse(null);
     }
-    
+
     public Rating updateRating(Rating rating) {
+        if (rating == null) {
+            throw new Exceptions.RatingNotFoundException("Rating not found");
+        }
         return ratingRepository.save(rating);
     }
 
