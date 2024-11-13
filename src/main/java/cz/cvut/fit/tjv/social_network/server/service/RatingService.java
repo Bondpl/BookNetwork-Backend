@@ -35,14 +35,16 @@ public class RatingService {
     }
 
     public Rating getRatingById(UUID uuid) {
-        if (uuid == null) {
+
+        if (!ratingRepository.existsById(uuid)) {
             throw new Exceptions.RatingNotFoundException("Rating not found");
         }
         return ratingRepository.findById(uuid).orElse(null);
     }
 
     public Rating updateRating(Rating rating) {
-        if (rating == null) {
+        UUID ratingId = rating.getUuid();
+        if (!ratingRepository.existsById(ratingId)) {
             throw new Exceptions.RatingNotFoundException("Rating not found");
         }
         return ratingRepository.save(rating);

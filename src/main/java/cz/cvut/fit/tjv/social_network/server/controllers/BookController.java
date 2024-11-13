@@ -43,6 +43,11 @@ public class BookController {
         return bookService.findBooksByStatus(status);
     }
 
+    @GetMapping("/{uuid}")
+    public Book getBookById(@PathVariable UUID uuid) {
+        return bookService.getBookById(uuid);
+    }
+
     @PostMapping
     public Book createBook(@Valid @RequestBody BookRequest bookRequest) {
         return bookService.createBook(bookRequest);

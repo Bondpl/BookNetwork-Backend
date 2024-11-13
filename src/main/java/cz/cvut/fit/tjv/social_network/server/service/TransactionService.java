@@ -2,6 +2,7 @@ package cz.cvut.fit.tjv.social_network.server.service;
 
 import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionRequest;
 import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionUpdateRequest;
+import cz.cvut.fit.tjv.social_network.server.exceptions.Exceptions;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.Transaction;
 import cz.cvut.fit.tjv.social_network.server.model.TransactionStatus;
@@ -28,16 +29,22 @@ public class TransactionService {
         User lender = userService.getUserById(transactionRequest.getLenderUuid());
         Book book = bookService.getBookById(transactionRequest.getBookUuid());
 
-        if (borrower == null || lender == null || book == null) {
-            throw new IllegalArgumentException("Invalid borrower, lender, or book UUID.");
+        if (borrower == null) {
+            throw new Exceptions.BorrowerNotFoundException("Invalid borrower UUID.");
+        }
+        if (lender == null) {
+            throw new Exceptions.LenderNotFoundException("Invalid lender UUID.");
+        }
+        if (book == null) {
+            throw new Exceptions.BookNotFoundException("Invalid book UUID.");
         }
 
         Optional<Transaction> ongoingTransaction = transactionRepository.findByBookAndStatus(book, TransactionStatus.ONGOING);
 
         if (ongoingTransaction.isPresent()) {
-            throw new IllegalArgumentException("Book is already borrowed.");
+            throw new Exceptions.BookAlreadyBorrowedException("Book is already borrowed.");
         }
-        
+
         Transaction transaction = new Transaction();
         transaction.setBorrower(borrower);
         transaction.setLender(lender);
@@ -68,13 +75,14 @@ public class TransactionService {
     }
 
     public Transaction updateTransactionStatus(TransactionUpdateRequest transactionUpdateRequest) {
+        UUID transactionId = transactionUpdateRequest.getUuid();
 
-        if (transactionUpdateRequest.getUuid() == null) {
-            throw new IllegalArgumentException("Transaction UUID is required.");
+        if (!transactionRepository.existsById(transactionId)) {
+            throw new Exceptions.TransactionNotFoundException("Transaction not found.");
         }
 
-        Transaction transaction = transactionRepository.findById(transactionUpdateRequest.getUuid())
-                .orElseThrow(() -> new IllegalArgumentException("Transaction not found."));
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new Exceptions.TransactionNotFoundException("Transaction not found."));
 
         transaction.setStatus(transactionUpdateRequest.getStatus());
         return transactionRepository.save(transaction);

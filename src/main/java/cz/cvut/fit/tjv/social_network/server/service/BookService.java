@@ -1,6 +1,7 @@
 package cz.cvut.fit.tjv.social_network.server.service;
 
 import cz.cvut.fit.tjv.social_network.server.dto.book.BookRequest;
+import cz.cvut.fit.tjv.social_network.server.exceptions.Exceptions;
 import cz.cvut.fit.tjv.social_network.server.model.*;
 import cz.cvut.fit.tjv.social_network.server.repository.BookRepository;
 import cz.cvut.fit.tjv.social_network.server.repository.TransactionRepository;
@@ -31,7 +32,7 @@ public class BookService {
 
         // Fetch the owner from the database
         User owner = userRepository.findById(bookRequest.getOwner().getUuid())
-                .orElseThrow(() -> new RuntimeException("Owner not found"));
+                .orElseThrow(() -> new Exceptions.OwnerNotFoundException("Owner not found"));
         book.setOwner(owner);
 
         return book;
@@ -39,9 +40,9 @@ public class BookService {
 
     public Book borrowBook(UUID bookUuid, UUID userUuid) {
         Book book = bookRepository.findById(bookUuid)
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+                .orElseThrow(() -> new Exceptions.BookNotFoundException("Book not found"));
         if (book.getBookStatus() == BookStatus.BORROWED) {
-            throw new RuntimeException("Book is already borrowed");
+            throw new Exceptions.BookAlreadyBorrowedException("Book is already borrowed");
         }
 
         book.setBookStatus(BookStatus.BORROWED);
@@ -50,11 +51,11 @@ public class BookService {
         Transaction transaction = new Transaction();
         transaction.setBook(book);
         User borrower = userRepository.findById(userUuid)
-                .orElseThrow(() -> new RuntimeException("Borrower not found"));
+                .orElseThrow(() -> new Exceptions.BorrowerNotFoundException("Borrower not found"));
         transaction.setBorrower(borrower);
 
         User lender = userRepository.findById(book.getOwner().getUuid())
-                .orElseThrow(() -> new RuntimeException("Lender not found"));
+                .orElseThrow(() -> new Exceptions.LenderNotFoundException("Lender not found"));
         transaction.setLender(lender);
 
         transaction.setStatus(TransactionStatus.ONGOING);
@@ -65,7 +66,7 @@ public class BookService {
 
     public Book createBook(BookRequest bookRequest) {
         if (bookRequest.getOwner() == null) {
-            throw new RuntimeException("Owner is required");
+            throw new Exceptions.OwnerRequiredException("Owner is required");
         }
         Book book = convertToBook(bookRequest);
         return bookRepository.save(book);
@@ -73,10 +74,10 @@ public class BookService {
 
     public void removeBook(UUID bookUuid) {
         Book book = bookRepository.findById(bookUuid)
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+                .orElseThrow(() -> new Exceptions.BookNotFoundException("Book not found"));
 
         if (book.getBookStatus() == BookStatus.BORROWED) {
-            throw new RuntimeException("Cannot remove a borrowed book");
+            throw new Exceptions.CantRemoveBorrowedBookException("Cannot remove a borrowed book");
         }
 
         bookRepository.deleteById(bookUuid);
@@ -110,6 +111,9 @@ public class BookService {
     }
 
     public Book getBookById(UUID uuid) {
+        if (bookRepository.findById(uuid).isEmpty()) {
+            throw new Exceptions.BookNotFoundException("Book not found");
+        }
         return bookRepository.findById(uuid).orElse(null);
     }
 }

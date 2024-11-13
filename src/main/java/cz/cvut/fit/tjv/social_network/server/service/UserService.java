@@ -2,6 +2,7 @@ package cz.cvut.fit.tjv.social_network.server.service;
 
 import cz.cvut.fit.tjv.social_network.server.dto.user.UserIdRequest;
 import cz.cvut.fit.tjv.social_network.server.dto.user.UserRequest;
+import cz.cvut.fit.tjv.social_network.server.exceptions.Exceptions;
 import cz.cvut.fit.tjv.social_network.server.model.User;
 import cz.cvut.fit.tjv.social_network.server.repository.UserRepository;
 import lombok.AllArgsConstructor;
@@ -26,15 +27,15 @@ public class UserService {
 
     public User createUser(UserRequest userRequest) {
         if (userRequest.getEmail() == null || userRequest.getUsername() == null || userRequest.getPassword() == null) {
-            throw new IllegalArgumentException("Email, username, and password are required fields and cannot be null");
+            throw new Exceptions.InvalidRequestException("Email, username, and password are required fields and cannot be null");
         }
 
         if (userRepository.existsByEmail(userRequest.getEmail())) {
-            throw new RuntimeException("User with this email already exists");
+            throw new Exceptions.UserEmailAlreadyExistsException("User with this email already exists");
         }
 
         if (userRepository.existsByUsername(userRequest.getUsername())) {
-            throw new RuntimeException("User with this username already exists");
+            throw new Exceptions.UserUsernameAlreadyExistsException("User with this username already exists");
         }
 
         User user = new User();
@@ -51,6 +52,9 @@ public class UserService {
     }
 
     public User getUserById(UUID uuid) {
+        if (userRepository.findById(uuid).isEmpty()) {
+            throw new Exceptions.UserNotFoundException("User with UUID " + uuid + " does not exist");
+        }
         return userRepository.findById(uuid).orElse(null);
     }
 
@@ -58,15 +62,15 @@ public class UserService {
         return userRequests.stream()
                 .map(userRequest -> {
                     if (userRequest.getEmail() == null || userRequest.getUsername() == null || userRequest.getPassword() == null) {
-                        throw new IllegalArgumentException("Email, username, and password are required fields and cannot be null");
+                        throw new Exceptions.InvalidRequestException("Email, username, and password are required fields and cannot be null");
                     }
 
                     if (userRepository.existsByEmail(userRequest.getEmail())) {
-                        throw new RuntimeException("User with this email already exists: " + userRequest.getEmail());
+                        throw new Exceptions.UserEmailAlreadyExistsException("User with this email already exists: " + userRequest.getEmail());
                     }
 
                     if (userRepository.existsByUsername(userRequest.getUsername())) {
-                        throw new RuntimeException("User with this username already exists: " + userRequest.getUsername());
+                        throw new Exceptions.UserUsernameAlreadyExistsException("User with this username already exists: " + userRequest.getUsername());
                     }
 
                     User user = new User();
@@ -90,13 +94,13 @@ public class UserService {
         return userRepository.findById(uuid).map(user -> {
             userRepository.delete(user);
             return user;
-        }).orElseThrow(() -> new IllegalArgumentException("User with UUID " + uuid + " does not exist"));
+        }).orElseThrow(() -> new Exceptions.UserNotFoundException("User with UUID " + uuid + " does not exist"));
     }
 
     public User updateUser(User user) {
         UUID uuid = user.getUuid();
         if (!userRepository.existsById(uuid)) {
-            throw new IllegalArgumentException("User with UUID " + uuid + " does not exist");
+            throw new Exceptions.UserNotFoundException("User with UUID " + uuid + " does not exist");
         }
         return userRepository.save(user);
     }

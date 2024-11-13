@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
@@ -49,6 +50,16 @@ public class UserController {
         try {
             User deletedUser = userService.deleteUser(userIdRequest);
             return ResponseEntity.ok(deletedUser);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
+    @GetMapping("/{uuid}")
+    public ResponseEntity<User> getUserById(@PathVariable UUID uuid) {
+        try {
+            User user = userService.getUserById(uuid);
+            return ResponseEntity.ok(user);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
