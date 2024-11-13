@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -63,4 +64,17 @@ public class RatingService {
         return false;
     }
 
+    public List<Integer> getRatingsByBook(Book book) {
+        return ratingRepository.findByBook(book).stream()
+                .map(Rating::getRating)
+                .collect(Collectors.toList());
+    }
+
+    public float getAverageRatingByBook(Book book) {
+        List<Integer> ratings = getRatingsByBook(book);
+        if (ratings.isEmpty()) {
+            return 0;
+        }
+        return (float) ratings.stream().mapToInt(Integer::intValue).sum() / ratings.size();
+    }
 }

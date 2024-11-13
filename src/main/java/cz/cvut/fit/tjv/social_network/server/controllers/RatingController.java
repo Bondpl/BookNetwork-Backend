@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/ratings")
@@ -50,6 +51,27 @@ public class RatingController {
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Rating not found");
         }
+    }
+
+    @GetMapping("/{uuid}")
+    public ResponseEntity<Rating> getRatingById(@PathVariable UUID uuid) {
+        try {
+            return ResponseEntity.ok(ratingService.getRatingById(uuid));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
+    @GetMapping("/book/{bookId}")
+    public List<Integer> getRatingsByBookId(@PathVariable UUID bookId) {
+        Book book = bookService.getBookById(bookId);
+        return ratingService.getRatingsByBook(book);
+    }
+
+    @GetMapping("/average/{bookId}")
+    public double getAverageRatingByBookId(@PathVariable UUID bookId) {
+        Book book = bookService.getBookById(bookId);
+        return ratingService.getAverageRatingByBook(book);
     }
 
 }
