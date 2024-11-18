@@ -52,4 +52,9 @@ public class BookController {
     public Book createBook(@Valid @RequestBody BookRequest bookRequest) {
         return bookService.createBook(bookRequest);
     }
+
+    @DeleteMapping
+    public void deleteBook(@PathVariable UUID uuid) {
+        bookService.removeBook(uuid);
+    }
 }

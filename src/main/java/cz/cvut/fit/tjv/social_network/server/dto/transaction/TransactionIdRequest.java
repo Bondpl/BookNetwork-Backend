@@ -8,7 +8,7 @@ import java.util.UUID;
 @Data
 public class TransactionIdRequest {
 
-    @NotNull(message = "Borrower is required")
-    private UUID borrowerUuid;
+    @NotNull(message = "Uuid is required")
+    private UUID uuid;
 
 }

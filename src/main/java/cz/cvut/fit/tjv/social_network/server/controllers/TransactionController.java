@@ -1,5 +1,6 @@
 package cz.cvut.fit.tjv.social_network.server.controllers;
 
+import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionIdRequest;
 import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionRequest;
 import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionUpdateRequest;
 import cz.cvut.fit.tjv.social_network.server.model.Transaction;
@@ -40,11 +41,15 @@ public class TransactionController {
     @PatchMapping("/update")
     public ResponseEntity<Transaction> updateTransaction(@Valid @RequestBody TransactionUpdateRequest transactionUpdateRequest) {
         try {
-            System.out.println(transactionUpdateRequest);
             Transaction updatedTransaction = transactionService.updateTransactionStatus(transactionUpdateRequest);
             return ResponseEntity.ok(updatedTransaction);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @DeleteMapping("/{uuid}")
+    public void deleteTransaction(@Valid @RequestBody TransactionIdRequest uuid) {
+        transactionService.removeTransaction(uuid.getUuid());
     }
 }
