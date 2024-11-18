@@ -1,6 +1,8 @@
 package service;
 
 
+import cz.cvut.fit.tjv.social_network.server.dto.rating.RatingIdRequest;
+import cz.cvut.fit.tjv.social_network.server.exceptions.Exceptions;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.Rating;
 import cz.cvut.fit.tjv.social_network.server.model.User;
@@ -27,6 +29,7 @@ class RatingServiceTest {
 
     @InjectMocks
     private RatingService ratingService;
+
 
     @BeforeEach
     void setUp() {
@@ -57,41 +60,52 @@ class RatingServiceTest {
 
     @Test
     void testGetRatingById() {
-        UUID ratingId = UUID.randomUUID();
+
+        RatingIdRequest ratingIdRequest = new RatingIdRequest();
+        ratingIdRequest.setRatingId(UUID.randomUUID());
+        UUID ratingId = ratingIdRequest.getRatingId();
         Rating rating = new Rating();
         rating.setUuid(ratingId);
 
+        when(ratingRepository.existsById(ratingId)).thenReturn(true);
         when(ratingRepository.findById(ratingId)).thenReturn(Optional.of(rating));
+
 
         Rating foundRating = ratingService.getRatingById(ratingId);
 
         assertNotNull(foundRating);
         assertEquals(ratingId, foundRating.getUuid());
+        verify(ratingRepository, times(1)).existsById(ratingId);
         verify(ratingRepository, times(1)).findById(ratingId);
     }
 
     @Test
     void testGetRatingById_NotFound() {
         UUID ratingId = UUID.randomUUID();
-        when(ratingRepository.findById(ratingId)).thenReturn(Optional.empty());
+        when(ratingRepository.existsById(ratingId)).thenReturn(false);
 
-        Rating foundRating = ratingService.getRatingById(ratingId);
-
-        assertNull(foundRating);
-        verify(ratingRepository, times(1)).findById(ratingId);
+        assertThrows(Exceptions.RatingNotFoundException.class, () -> {
+            ratingService.getRatingById(ratingId);
+        });
+        verify(ratingRepository, times(1)).existsById(ratingId);
     }
 
     @Test
     void testUpdateRating() {
+        UUID ratingId = UUID.randomUUID();
         Rating rating = new Rating();
+        rating.setUuid(ratingId);
         rating.setRating(4);
 
+        when(ratingRepository.existsById(ratingId)).thenReturn(true);
         when(ratingRepository.save(rating)).thenReturn(rating);
+
 
         Rating updatedRating = ratingService.updateRating(rating);
 
         assertNotNull(updatedRating);
         assertEquals(4, updatedRating.getRating());
+        verify(ratingRepository, times(1)).existsById(ratingId);
         verify(ratingRepository, times(1)).save(rating);
     }
 

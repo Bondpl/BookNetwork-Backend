@@ -2,6 +2,7 @@ package service;
 
 import cz.cvut.fit.tjv.social_network.server.dto.user.UserIdRequest;
 import cz.cvut.fit.tjv.social_network.server.dto.user.UserRequest;
+import cz.cvut.fit.tjv.social_network.server.exceptions.Exceptions;
 import cz.cvut.fit.tjv.social_network.server.model.Role;
 import cz.cvut.fit.tjv.social_network.server.model.User;
 import cz.cvut.fit.tjv.social_network.server.repository.UserRepository;
@@ -106,12 +107,16 @@ class UserServiceTest {
 
     @Test
     void getUserById_Found() {
+        UserIdRequest userIdRequest = new UserIdRequest();
         UUID uuid = UUID.randomUUID();
+        userIdRequest.setUuid(uuid);
+
         User user = new User();
         user.setUuid(uuid);
+
         when(userRepository.findById(uuid)).thenReturn(Optional.of(user));
 
-        User foundUser = userService.getUserById(user.getUuid());
+        User foundUser = userService.getUserById(uuid);
 
         assertNotNull(foundUser);
         assertEquals(uuid, foundUser.getUuid());
@@ -125,7 +130,7 @@ class UserServiceTest {
         userIdRequest.setUuid(uuid);
         when(userRepository.findById(uuid)).thenReturn(Optional.empty());
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> userService.getUserById(uuid));
+        Exceptions.UserNotFoundException exception = assertThrows(Exceptions.UserNotFoundException.class, () -> userService.getUserById(uuid));
         assertEquals("User with UUID " + uuid + " does not exist", exception.getMessage());
         verify(userRepository, times(1)).findById(uuid);
     }
@@ -182,7 +187,7 @@ class UserServiceTest {
         when(userRepository.findById(uuid)).thenReturn(Optional.empty());
         UserIdRequest userIdRequest = new UserIdRequest();
         userIdRequest.setUuid(uuid);
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> userService.deleteUser(userIdRequest));
+        Exceptions.UserNotFoundException exception = assertThrows(Exceptions.UserNotFoundException.class, () -> userService.deleteUser(userIdRequest));
 
         assertEquals("User with UUID " + uuid + " does not exist", exception.getMessage());
         verify(userRepository, never()).delete(any(User.class));
@@ -191,32 +196,25 @@ class UserServiceTest {
     @Test
     void updateUser_Successful() {
         UUID uuid = UUID.randomUUID();
-        UserRequest userRequest = new UserRequest();
-        userRequest.setUuid(uuid);
-        userRequest.setUsername("test");
-        userRequest.setEmail("232@gmail.com");
-        userRequest.setPassword("123");
-        userRequest.setDescription("test");
-        userRequest.setProfilePictureUrl("test");
-        userRequest.setRole(Role.USER);
-
         User user = new User();
         user.setUuid(uuid);
         user.setUsername("test");
-        user.setEmail("123@gmail.com");
-        user.setPassword("123");
-        user.setDescription("test");
-        user.setProfilePictureUrl("test");
+        user.setEmail("test@example.com");
+        user.setPassword("password");
+        user.setDescription("description");
+        user.setProfilePictureUrl("url");
         user.setRole(Role.USER);
-        when(userRepository.findById(userRequest.getUuid())).thenReturn(Optional.of(user));
+
+        when(userRepository.existsById(uuid)).thenReturn(true);
+        when(userRepository.save(user)).thenReturn(user);
 
         User updatedUser = userService.updateUser(user);
 
         assertNotNull(updatedUser);
         assertEquals("test", updatedUser.getUsername());
-        assertEquals("232@gmail.com", updatedUser.getEmail());
-        assertEquals("test", updatedUser.getDescription());
-        assertEquals("test", updatedUser.getProfilePictureUrl());
+        assertEquals("test@example.com", updatedUser.getEmail());
+        assertEquals("description", updatedUser.getDescription());
+        assertEquals("url", updatedUser.getProfilePictureUrl());
         assertEquals(Role.USER, updatedUser.getRole());
         verify(userRepository, times(1)).save(user);
     }
@@ -227,7 +225,9 @@ class UserServiceTest {
         User user = new User();
         user.setUuid(uuid);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> userService.updateUser(user));
+        when(userRepository.existsById(uuid)).thenReturn(false);
+
+        Exceptions.UserNotFoundException exception = assertThrows(Exceptions.UserNotFoundException.class, () -> userService.updateUser(user));
         assertEquals("User with UUID " + uuid + " does not exist", exception.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }

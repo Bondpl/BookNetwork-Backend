@@ -52,10 +52,8 @@ public class UserService {
     }
 
     public User getUserById(UUID uuid) {
-        if (userRepository.findById(uuid).isEmpty()) {
-            throw new Exceptions.UserNotFoundException("User with UUID " + uuid + " does not exist");
-        }
-        return userRepository.findById(uuid).orElse(null);
+        return userRepository.findById(uuid)
+                .orElseThrow(() -> new Exceptions.UserNotFoundException("User with UUID " + uuid + " does not exist"));
     }
 
     public List<User> createUsers(List<UserRequest> userRequests) {

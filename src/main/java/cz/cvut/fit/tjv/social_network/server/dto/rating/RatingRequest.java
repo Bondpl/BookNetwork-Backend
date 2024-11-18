@@ -8,6 +8,7 @@ import java.util.UUID;
 @Data
 public class RatingRequest {
 
+
     @NotNull(message = "Book ID is required")
     private UUID bookId;
 

@@ -3,6 +3,7 @@ package service;
 
 import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionRequest;
 import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionUpdateRequest;
+import cz.cvut.fit.tjv.social_network.server.exceptions.Exceptions;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.Transaction;
 import cz.cvut.fit.tjv.social_network.server.model.TransactionStatus;
@@ -105,7 +106,7 @@ class TransactionServiceTest {
         when(transactionRepository.findByBookAndStatus(book, TransactionStatus.ONGOING))
                 .thenReturn(Optional.of(new Transaction()));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+        Exceptions.BookAlreadyBorrowedException exception = assertThrows(Exceptions.BookAlreadyBorrowedException.class, () ->
                 transactionService.createTransaction(transactionRequest));
 
         assertEquals("Book is already borrowed.", exception.getMessage());
@@ -122,6 +123,7 @@ class TransactionServiceTest {
         existingTransaction.setUuid(transactionUuid);
         existingTransaction.setStatus(TransactionStatus.ONGOING);
 
+        when(transactionRepository.existsById(transactionUuid)).thenReturn(true);
         when(transactionRepository.findById(transactionUuid)).thenReturn(Optional.of(existingTransaction));
 
         Transaction updatedTransaction = new Transaction();
@@ -134,6 +136,8 @@ class TransactionServiceTest {
 
         assertNotNull(result);
         assertEquals(TransactionStatus.COMPLETED, result.getStatus());
+        verify(transactionRepository).existsById(transactionUuid);
+        verify(transactionRepository).findById(transactionUuid);
         verify(transactionRepository).save(existingTransaction);
     }
 
@@ -146,7 +150,7 @@ class TransactionServiceTest {
 
         when(transactionRepository.findById(transactionUuid)).thenReturn(Optional.empty());
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+        Exceptions.TransactionNotFoundException exception = assertThrows(Exceptions.TransactionNotFoundException.class, () ->
                 transactionService.updateTransactionStatus(transactionUpdateRequest));
 
         assertEquals("Transaction not found.", exception.getMessage());
