@@ -65,22 +65,32 @@ public class BookService {
         return book;
     }
 
-    public Book returnBook(UUID bookUuid) {
-        Book book = bookRepository.findById(bookUuid)
+
+    public boolean hasBorrowerTransactionWithBook(UUID bookId, UUID borrowerId) {
+        Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new Exceptions.BookNotFoundException("Book not found"));
-        if (book.getBookStatus() == BookStatus.AVAILABLE) {
-            throw new Exceptions.BookAlreadyReturnedException("Book is already returned");
-        }
+        User borrower = userRepository.findById(borrowerId)
+                .orElseThrow(() -> new Exceptions.BorrowerNotFoundException("Borrower not found"));
 
-        book.setBookStatus(BookStatus.AVAILABLE);
-        bookRepository.save(book);
+        return transactionRepository.findByBookAndBorrower(book, borrower).isPresent();
+    }
 
-        Transaction transaction = transactionRepository.findByBook_Uuid(bookUuid)
-                .orElseThrow(() -> new Exceptions.TransactionNotFoundException("Transaction not found"));
+    //@Todo: Implement this method
+    public void returnBook(BookBorrowRequest bookBorrowRequest) {
+        Book book = bookRepository.findById(bookBorrowRequest.getBookId())
+                .orElseThrow(() -> new Exceptions.BookNotFoundException("Book not found"));
+
+        User borrowerUser = userRepository.findById(bookBorrowRequest.getBorrower())
+                .orElseThrow(() -> new Exceptions.LenderNotFoundException("Borrower not found"));
+
+        Transaction transaction = transactionRepository.findByBookAndBorrowerAndStatus(book, borrowerUser, TransactionStatus.ONGOING)
+                .orElseThrow(() -> new Exceptions.TransactionNotFoundException("No borrowed transaction found for this book and borrower"));
+
         transaction.setStatus(TransactionStatus.COMPLETED);
         transactionRepository.save(transaction);
 
-        return book;
+        book.setBookStatus(BookStatus.AVAILABLE);
+        bookRepository.save(book);
     }
 
     public Book createBook(BookRequest bookRequest) {

@@ -58,9 +58,14 @@ public class BookController {
     public void deleteBook(@PathVariable UUID uuid) {
         bookService.removeBook(uuid);
     }
-    
+
     @PostMapping("/borrow")
     public Book borrowBook(@Valid @RequestBody BookBorrowRequest bookBorrowRequest) {
         return bookService.borrowBook(bookBorrowRequest);
+    }
+
+    @PostMapping("/return")
+    public void returnBook(@Valid @RequestBody BookBorrowRequest bookBorrowRequest) {
+        bookService.returnBook(bookBorrowRequest);
     }
 }
