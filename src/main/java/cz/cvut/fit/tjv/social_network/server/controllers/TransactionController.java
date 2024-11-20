@@ -52,4 +52,9 @@ public class TransactionController {
     public void deleteTransaction(@Valid @RequestBody TransactionIdRequest uuid) {
         transactionService.removeTransaction(uuid.getUuid());
     }
+
+    @GetMapping("/book")
+    public Collection<Transaction> getTransactionsOfBook(@Valid @RequestBody TransactionIdRequest uuid) {
+        return transactionService.getTransactionsOfBook(uuid.getUuid());
+    }
 }

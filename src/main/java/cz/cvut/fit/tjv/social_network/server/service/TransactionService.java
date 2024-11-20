@@ -71,7 +71,7 @@ public class TransactionService {
     }
 
     public Collection<Transaction> getTransactionsOfBook(UUID bookId) {
-        return transactionRepository.findByBook_Uuid(bookId);
+        return transactionRepository.findAllByBookUuid(bookId);
     }
 
     public Transaction updateTransactionStatus(TransactionUpdateRequest transactionUpdateRequest) {

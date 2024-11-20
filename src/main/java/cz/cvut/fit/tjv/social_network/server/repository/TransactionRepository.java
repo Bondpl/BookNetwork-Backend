@@ -14,7 +14,9 @@ import java.util.UUID;
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
     Collection<Transaction> findByBorrower_Uuid(UUID uuid);
 
-    Collection<Transaction> findByBook_Uuid(UUID bookId);
+    Optional<Transaction> findByBook_Uuid(UUID bookId);
+
+    Collection<Transaction> findAllByBookUuid(UUID uuid);
 
     Optional<Transaction> findByBookAndStatus(Book book, TransactionStatus transactionStatus);
 }
