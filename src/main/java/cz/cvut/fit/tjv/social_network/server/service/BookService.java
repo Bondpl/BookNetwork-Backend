@@ -1,5 +1,6 @@
 package cz.cvut.fit.tjv.social_network.server.service;
 
+import cz.cvut.fit.tjv.social_network.server.dto.book.BookBorrowRequest;
 import cz.cvut.fit.tjv.social_network.server.dto.book.BookRequest;
 import cz.cvut.fit.tjv.social_network.server.exceptions.Exceptions;
 import cz.cvut.fit.tjv.social_network.server.model.*;
@@ -38,8 +39,8 @@ public class BookService {
         return book;
     }
 
-    public Book borrowBook(UUID bookUuid, UUID userUuid) {
-        Book book = bookRepository.findById(bookUuid)
+    public Book borrowBook(BookBorrowRequest bookBorrowRequest) {
+        Book book = bookRepository.findById(bookBorrowRequest.getBookId())
                 .orElseThrow(() -> new Exceptions.BookNotFoundException("Book not found"));
         if (book.getBookStatus() == BookStatus.BORROWED) {
             throw new Exceptions.BookAlreadyBorrowedException("Book is already borrowed");
@@ -50,7 +51,7 @@ public class BookService {
 
         Transaction transaction = new Transaction();
         transaction.setBook(book);
-        User borrower = userRepository.findById(userUuid)
+        User borrower = userRepository.findById(bookBorrowRequest.getBorrower())
                 .orElseThrow(() -> new Exceptions.BorrowerNotFoundException("Borrower not found"));
         transaction.setBorrower(borrower);
 
@@ -59,6 +60,24 @@ public class BookService {
         transaction.setLender(lender);
 
         transaction.setStatus(TransactionStatus.ONGOING);
+        transactionRepository.save(transaction);
+
+        return book;
+    }
+
+    public Book returnBook(UUID bookUuid) {
+        Book book = bookRepository.findById(bookUuid)
+                .orElseThrow(() -> new Exceptions.BookNotFoundException("Book not found"));
+        if (book.getBookStatus() == BookStatus.AVAILABLE) {
+            throw new Exceptions.BookAlreadyReturnedException("Book is already returned");
+        }
+
+        book.setBookStatus(BookStatus.AVAILABLE);
+        bookRepository.save(book);
+
+        Transaction transaction = transactionRepository.findByBook_Uuid(bookUuid)
+                .orElseThrow(() -> new Exceptions.TransactionNotFoundException("Transaction not found"));
+        transaction.setStatus(TransactionStatus.COMPLETED);
         transactionRepository.save(transaction);
 
         return book;

@@ -102,4 +102,10 @@ public class Exceptions {
             super(message);
         }
     }
+
+    public static class BookAlreadyReturnedException extends RuntimeException {
+        public BookAlreadyReturnedException(String message) {
+            super(message);
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package cz.cvut.fit.tjv.social_network.server.controllers;
 
+import cz.cvut.fit.tjv.social_network.server.dto.book.BookBorrowRequest;
 import cz.cvut.fit.tjv.social_network.server.dto.book.BookRequest;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.BookStatus;
@@ -56,5 +57,10 @@ public class BookController {
     @DeleteMapping
     public void deleteBook(@PathVariable UUID uuid) {
         bookService.removeBook(uuid);
+    }
+    
+    @PostMapping("/borrow")
+    public Book borrowBook(@Valid @RequestBody BookBorrowRequest bookBorrowRequest) {
+        return bookService.borrowBook(bookBorrowRequest);
     }
 }

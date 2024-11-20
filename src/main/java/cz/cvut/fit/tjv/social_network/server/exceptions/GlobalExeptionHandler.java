@@ -102,4 +102,9 @@ public class GlobalExeptionHandler {
     public ResponseEntity<ErrorResponse> handleInvalidRequestException(Exceptions.InvalidRequestException e, WebRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(LocalDateTime.now(), e.getMessage(), request.getDescription(false)));
     }
+
+    @ExceptionHandler(Exceptions.BookAlreadyReturnedException.class)
+    public ResponseEntity<ErrorResponse> handleBookAlreadyReturnedException(Exceptions.BookAlreadyReturnedException e, WebRequest request) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(LocalDateTime.now(), e.getMessage(), request.getDescription(false)));
+    }
 }
