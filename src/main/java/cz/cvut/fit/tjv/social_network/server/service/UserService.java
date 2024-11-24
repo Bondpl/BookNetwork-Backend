@@ -1,10 +1,13 @@
 package cz.cvut.fit.tjv.social_network.server.service;
 
-import cz.cvut.fit.tjv.social_network.server.dto.user.UserIdRequest;
-import cz.cvut.fit.tjv.social_network.server.dto.user.UserRequest;
+import cz.cvut.fit.tjv.social_network.server.dto.user.UserDTO;
+import cz.cvut.fit.tjv.social_network.server.dto.user.UserIdDTO;
+import cz.cvut.fit.tjv.social_network.server.dto.user.UserRegisterDTO;
 import cz.cvut.fit.tjv.social_network.server.exceptions.Exceptions;
+import cz.cvut.fit.tjv.social_network.server.model.Role;
 import cz.cvut.fit.tjv.social_network.server.model.User;
 import cz.cvut.fit.tjv.social_network.server.repository.UserRepository;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,30 +28,43 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public User createUser(UserRequest userRequest) {
-        if (userRequest.getEmail() == null || userRequest.getUsername() == null || userRequest.getPassword() == null) {
-            throw new Exceptions.InvalidRequestException("Email, username, and password are required fields and cannot be null");
+    public UserDTO createUser(UserRegisterDTO userRegisterDTO) {
+
+        if (userRegisterDTO.getEmail() == null) {
+            throw new IllegalArgumentException("Email is required");
         }
 
-        if (userRepository.existsByEmail(userRequest.getEmail())) {
-            throw new Exceptions.UserEmailAlreadyExistsException("User with this email already exists");
+        if (userRepository.existsByEmail(userRegisterDTO.getEmail())) {
+            throw new Exceptions.UserEmailAlreadyExistsException("User with this email already exists: " + userRegisterDTO.getEmail());
         }
 
-        if (userRepository.existsByUsername(userRequest.getUsername())) {
-            throw new Exceptions.UserUsernameAlreadyExistsException("User with this username already exists");
+        if (userRegisterDTO.getUsername() == null) {
+            throw new IllegalArgumentException("Username is required");
         }
 
+        if (userRepository.existsByUsername(userRegisterDTO.getUsername())) {
+            throw new Exceptions.UserUsernameAlreadyExistsException("User with this username already exists: " + userRegisterDTO.getUsername());
+        }
         User user = new User();
-        user.setUsername(userRequest.getUsername());
-        user.setEmail(userRequest.getEmail());
-        user.setDescription(userRequest.getDescription());
-        user.setProfilePictureUrl(userRequest.getProfilePictureUrl());
-        user.setRole(userRequest.getRole());
+        user.setUsername(userRegisterDTO.getUsername());
+        user.setEmail(userRegisterDTO.getEmail());
+        user.setPassword(passwordEncoder.encode(userRegisterDTO.getPassword()));
+        user.setDescription(userRegisterDTO.getDescription());
+        user.setProfilePictureUrl(userRegisterDTO.getProfilePictureUrl());
+        user.setRole(userRegisterDTO.getRole());
+        userRepository.save(user);
+        return mapToDTO(user);
+    }
 
-        String hashedPassword = passwordEncoder.encode(userRequest.getPassword());
-        user.setPassword(hashedPassword);
-
-        return userRepository.save(user);
+    private UserDTO mapToDTO(User user) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUuid(user.getUuid());
+        userDTO.setUsername(user.getUsername());
+        userDTO.setEmail(user.getEmail());
+        userDTO.setDescription(user.getDescription());
+        userDTO.setProfilePictureUrl(user.getProfilePictureUrl());
+        userDTO.setRole(user.getRole());
+        return userDTO;
     }
 
     public User getUserById(UUID uuid) {
@@ -56,29 +72,29 @@ public class UserService {
                 .orElseThrow(() -> new Exceptions.UserNotFoundException("User with UUID " + uuid + " does not exist"));
     }
 
-    public List<User> createUsers(List<UserRequest> userRequests) {
-        return userRequests.stream()
-                .map(userRequest -> {
-                    if (userRequest.getEmail() == null || userRequest.getUsername() == null || userRequest.getPassword() == null) {
+    public List<User> createUsers(List<UserDTO> userDTOS) {
+        return userDTOS.stream()
+                .map(userDTO -> {
+                    if (userDTO.getEmail() == null || userDTO.getUsername() == null || userDTO.getPassword() == null) {
                         throw new Exceptions.InvalidRequestException("Email, username, and password are required fields and cannot be null");
                     }
 
-                    if (userRepository.existsByEmail(userRequest.getEmail())) {
-                        throw new Exceptions.UserEmailAlreadyExistsException("User with this email already exists: " + userRequest.getEmail());
+                    if (userRepository.existsByEmail(userDTO.getEmail())) {
+                        throw new Exceptions.UserEmailAlreadyExistsException("User with this email already exists: " + userDTO.getEmail());
                     }
 
-                    if (userRepository.existsByUsername(userRequest.getUsername())) {
-                        throw new Exceptions.UserUsernameAlreadyExistsException("User with this username already exists: " + userRequest.getUsername());
+                    if (userRepository.existsByUsername(userDTO.getUsername())) {
+                        throw new Exceptions.UserUsernameAlreadyExistsException("User with this username already exists: " + userDTO.getUsername());
                     }
 
                     User user = new User();
-                    user.setUsername(userRequest.getUsername());
-                    user.setEmail(userRequest.getEmail());
-                    user.setDescription(userRequest.getDescription());
-                    user.setProfilePictureUrl(userRequest.getProfilePictureUrl());
-                    user.setRole(userRequest.getRole());
+                    user.setUsername(userDTO.getUsername());
+                    user.setEmail(userDTO.getEmail());
+                    user.setDescription(userDTO.getDescription());
+                    user.setProfilePictureUrl(userDTO.getProfilePictureUrl());
+                    user.setRole(Role.USER);
 
-                    String hashedPassword = passwordEncoder.encode(userRequest.getPassword());
+                    String hashedPassword = passwordEncoder.encode(userDTO.getPassword());
                     user.setPassword(hashedPassword);
 
                     return userRepository.save(user);
@@ -87,8 +103,8 @@ public class UserService {
     }
 
 
-    public User deleteUser(UserIdRequest userIdRequest) {
-        UUID uuid = userIdRequest.getUuid();
+    public User deleteUser(UserIdDTO userIdDTO) {
+        UUID uuid = userIdDTO.getUuid();
         return userRepository.findById(uuid).map(user -> {
             userRepository.delete(user);
             return user;
@@ -103,4 +119,9 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public UserDTO getUserByEmail(@NotBlank(message = "Email is required") String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new Exceptions.UserNotFoundException("User with email " + email + " does not exist"));
+        return mapToDTO(user);
+    }
 }

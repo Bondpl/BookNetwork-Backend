@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class UserIdRequest {
+public class UserIdDTO {
 
     private UUID uuid;
 }

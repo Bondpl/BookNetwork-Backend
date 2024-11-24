@@ -2,13 +2,15 @@ package cz.cvut.fit.tjv.social_network.server.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.UUID;
 
 @Entity
-@Data
 @Table(name = "users")
+@Setter
+@Getter
 public class User {
 
     @Id
