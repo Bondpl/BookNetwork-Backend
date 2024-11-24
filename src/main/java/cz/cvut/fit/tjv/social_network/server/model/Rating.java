@@ -3,13 +3,15 @@ package cz.cvut.fit.tjv.social_network.server.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.UUID;
 
 @Entity
-@Data
 @Table(name = "ratings")
+@Setter
+@Getter
 public class Rating {
 
     @Id
@@ -27,7 +29,6 @@ public class Rating {
     private User user;
 
     @NotNull(message = "Rating is required")
-    @JsonBackReference
     private int rating;
 
 }

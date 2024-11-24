@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class RatingRequest {
+public class RatingDTO {
 
 
     @NotNull(message = "Book ID is required")

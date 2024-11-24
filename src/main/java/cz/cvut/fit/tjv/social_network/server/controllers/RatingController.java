@@ -1,13 +1,14 @@
 package cz.cvut.fit.tjv.social_network.server.controllers;
 
-import cz.cvut.fit.tjv.social_network.server.dto.rating.RatingIdRequest;
-import cz.cvut.fit.tjv.social_network.server.dto.rating.RatingRequest;
+import cz.cvut.fit.tjv.social_network.server.dto.rating.RatingDTO;
+import cz.cvut.fit.tjv.social_network.server.dto.rating.RatingIdDTO;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.Rating;
 import cz.cvut.fit.tjv.social_network.server.model.User;
 import cz.cvut.fit.tjv.social_network.server.service.BookService;
 import cz.cvut.fit.tjv.social_network.server.service.RatingService;
 import cz.cvut.fit.tjv.social_network.server.service.UserService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,21 +31,21 @@ public class RatingController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<?> createRating(@RequestBody RatingRequest ratingRequest) {
-        Book book = bookService.getBookById(ratingRequest.getBookId());
-        User user = userService.getUserById(ratingRequest.getUserId());
+    public ResponseEntity<?> createRating(@RequestBody RatingDTO ratingDTO) {
+        Book book = bookService.getBookById(ratingDTO.getBookId());
+        User user = userService.getUserById(ratingDTO.getUserId());
 
         if (book == null || user == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid book or user ID");
         }
 
-        Rating rating = ratingService.CreateRating(book, user, ratingRequest.getRating());
+        Rating rating = ratingService.CreateRating(book, user, ratingDTO.getRating());
         return ResponseEntity.status(HttpStatus.CREATED).body(rating);
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteRating(@RequestBody RatingIdRequest ratingIdRequest) {
-        boolean deleted = ratingService.deleteRatingById(ratingIdRequest.getRatingId());
+    public ResponseEntity<?> deleteRating(@RequestBody RatingIdDTO ratingIdDTO) {
+        boolean deleted = ratingService.deleteRatingById(ratingIdDTO.getUuid());
 
         if (deleted) {
             return ResponseEntity.noContent().build();
@@ -53,10 +54,11 @@ public class RatingController {
         }
     }
 
-    @GetMapping("/{uuid}")
-    public ResponseEntity<Rating> getRatingById(@PathVariable UUID uuid) {
+    @GetMapping("/get")
+    public ResponseEntity<?> getRatingById(@Valid @RequestBody RatingIdDTO ratingIdDTO) {
         try {
-            return ResponseEntity.ok(ratingService.getRatingById(uuid));
+            Rating rating = ratingService.getRatingById(ratingIdDTO);
+            return ResponseEntity.ok(rating);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }

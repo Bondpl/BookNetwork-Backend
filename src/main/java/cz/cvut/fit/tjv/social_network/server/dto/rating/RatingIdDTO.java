@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class RatingIdRequest {
+public class RatingIdDTO {
     @NotNull(message = "Rating ID is required")
-    private UUID ratingId;
+    private UUID uuid;
 }

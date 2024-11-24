@@ -1,5 +1,6 @@
 package cz.cvut.fit.tjv.social_network.server.service;
 
+import cz.cvut.fit.tjv.social_network.server.dto.rating.RatingIdDTO;
 import cz.cvut.fit.tjv.social_network.server.exceptions.Exceptions;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.Rating;
@@ -35,12 +36,12 @@ public class RatingService {
         return ratingRepository.save(r);
     }
 
-    public Rating getRatingById(UUID uuid) {
+    public Rating getRatingById(RatingIdDTO ratingIdDTO) {
 
-        if (!ratingRepository.existsById(uuid)) {
+        if (!ratingRepository.existsById(ratingIdDTO.getUuid())) {
             throw new Exceptions.RatingNotFoundException("Rating not found");
         }
-        return ratingRepository.findById(uuid).orElse(null);
+        return ratingRepository.findById(ratingIdDTO.getUuid()).get();
     }
 
     public Rating updateRating(Rating rating) {
