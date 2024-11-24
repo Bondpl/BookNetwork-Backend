@@ -7,11 +7,11 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class TransactionUpdateRequest {
+public class TransactionUpdateDTO {
 
     @NotNull(message = "Uuid is required")
     private UUID uuid;
-    
+
     @NotNull(message = "Status is required")
     private TransactionStatus status;
 }

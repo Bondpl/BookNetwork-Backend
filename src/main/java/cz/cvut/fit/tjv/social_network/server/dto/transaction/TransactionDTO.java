@@ -7,7 +7,7 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class TransactionRequest {
+public class TransactionDTO {
 
     @NotNull(message = "Borrower is required")
     private UUID borrowerUuid;

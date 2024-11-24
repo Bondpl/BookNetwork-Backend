@@ -1,7 +1,7 @@
 package cz.cvut.fit.tjv.social_network.server.service;
 
-import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionRequest;
-import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionUpdateRequest;
+import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionDTO;
+import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionUpdateDTO;
 import cz.cvut.fit.tjv.social_network.server.exceptions.Exceptions;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.Transaction;
@@ -22,12 +22,12 @@ public class TransactionService {
     private UserService userService;
     private BookService bookService;
 
-    public Transaction createTransaction(TransactionRequest transactionRequest) {
+    public Transaction createTransaction(TransactionDTO transactionDTO) {
 
 
-        User borrower = userService.getUserById(transactionRequest.getBorrowerUuid());
-        User lender = userService.getUserById(transactionRequest.getLenderUuid());
-        Book book = bookService.getBookById(transactionRequest.getBookUuid());
+        User borrower = userService.getUserById(transactionDTO.getBorrowerUuid());
+        User lender = userService.getUserById(transactionDTO.getLenderUuid());
+        Book book = bookService.getBookById(transactionDTO.getBookUuid());
 
         if (borrower == null) {
             throw new Exceptions.BorrowerNotFoundException("Invalid borrower UUID.");
@@ -49,7 +49,7 @@ public class TransactionService {
         transaction.setBorrower(borrower);
         transaction.setLender(lender);
         transaction.setBook(book);
-        transaction.setStatus(transactionRequest.getStatus());
+        transaction.setStatus(transactionDTO.getStatus());
 
         return transactionRepository.save(transaction);
     }
@@ -74,8 +74,8 @@ public class TransactionService {
         return transactionRepository.findAllByBookUuid(bookId);
     }
 
-    public Transaction updateTransactionStatus(TransactionUpdateRequest transactionUpdateRequest) {
-        UUID transactionId = transactionUpdateRequest.getUuid();
+    public Transaction updateTransactionStatus(TransactionUpdateDTO transactionUpdateDTO) {
+        UUID transactionId = transactionUpdateDTO.getUuid();
 
         if (!transactionRepository.existsById(transactionId)) {
             throw new Exceptions.TransactionNotFoundException("Transaction not found.");
@@ -84,7 +84,8 @@ public class TransactionService {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new Exceptions.TransactionNotFoundException("Transaction not found."));
 
-        transaction.setStatus(transactionUpdateRequest.getStatus());
+        transaction.setStatus(transactionUpdateDTO.getStatus());
         return transactionRepository.save(transaction);
     }
+    
 }
