@@ -1,7 +1,8 @@
 package cz.cvut.fit.tjv.social_network.server.service;
 
-import cz.cvut.fit.tjv.social_network.server.dto.book.BookBorrowRequest;
-import cz.cvut.fit.tjv.social_network.server.dto.book.BookRequest;
+import cz.cvut.fit.tjv.social_network.server.dto.book.BookBorrowDTO;
+import cz.cvut.fit.tjv.social_network.server.dto.book.BookDTO;
+import cz.cvut.fit.tjv.social_network.server.dto.book.BookIdDTO;
 import cz.cvut.fit.tjv.social_network.server.exceptions.Exceptions;
 import cz.cvut.fit.tjv.social_network.server.model.*;
 import cz.cvut.fit.tjv.social_network.server.repository.BookRepository;
@@ -22,25 +23,23 @@ public class BookService {
     private UserRepository userRepository;
     private TransactionRepository transactionRepository;
 
-    // Converts BookRequest DTO to Book entity
-    private Book convertToBook(BookRequest bookRequest) {
+    private Book convertToBook(BookDTO bookDTO) {
         Book book = new Book();
-        book.setTitle(bookRequest.getTitle());
-        book.setAuthor(bookRequest.getAuthor());
-        book.setIsbn(bookRequest.getIsbn());
-        book.setBookStatus(bookRequest.getBookStatus());
-        book.setCoverUrl(bookRequest.getCoverUrl());
+        book.setTitle(bookDTO.getTitle());
+        book.setAuthor(bookDTO.getAuthor());
+        book.setIsbn(bookDTO.getIsbn());
+        book.setBookStatus(bookDTO.getBookStatus());
+        book.setCoverUrl(bookDTO.getCoverUrl());
 
-        // Fetch the owner from the database
-        User owner = userRepository.findById(bookRequest.getOwner().getUuid())
+        User owner = userRepository.findById(bookDTO.getOwner().getUuid())
                 .orElseThrow(() -> new Exceptions.OwnerNotFoundException("Owner not found"));
         book.setOwner(owner);
 
         return book;
     }
 
-    public Book borrowBook(BookBorrowRequest bookBorrowRequest) {
-        Book book = bookRepository.findById(bookBorrowRequest.getBookId())
+    public Book borrowBook(BookBorrowDTO bookBorrowDTO) {
+        Book book = bookRepository.findById(bookBorrowDTO.getBookId())
                 .orElseThrow(() -> new Exceptions.BookNotFoundException("Book not found"));
         if (book.getBookStatus() == BookStatus.BORROWED) {
             throw new Exceptions.BookAlreadyBorrowedException("Book is already borrowed");
@@ -51,7 +50,7 @@ public class BookService {
 
         Transaction transaction = new Transaction();
         transaction.setBook(book);
-        User borrower = userRepository.findById(bookBorrowRequest.getBorrower())
+        User borrower = userRepository.findById(bookBorrowDTO.getBorrower())
                 .orElseThrow(() -> new Exceptions.BorrowerNotFoundException("Borrower not found"));
         transaction.setBorrower(borrower);
 
@@ -76,11 +75,11 @@ public class BookService {
     }
 
     //@Todo: Implement this method
-    public void returnBook(BookBorrowRequest bookBorrowRequest) {
-        Book book = bookRepository.findById(bookBorrowRequest.getBookId())
+    public void returnBook(BookBorrowDTO bookBorrowDTO) {
+        Book book = bookRepository.findById(bookBorrowDTO.getBookId())
                 .orElseThrow(() -> new Exceptions.BookNotFoundException("Book not found"));
 
-        User borrowerUser = userRepository.findById(bookBorrowRequest.getBorrower())
+        User borrowerUser = userRepository.findById(bookBorrowDTO.getBorrower())
                 .orElseThrow(() -> new Exceptions.LenderNotFoundException("Borrower not found"));
 
         Transaction transaction = transactionRepository.findByBookAndBorrowerAndStatus(book, borrowerUser, TransactionStatus.ONGOING)
@@ -93,23 +92,23 @@ public class BookService {
         bookRepository.save(book);
     }
 
-    public Book createBook(BookRequest bookRequest) {
-        if (bookRequest.getOwner() == null) {
+    public Book createBook(BookDTO bookDTO) {
+        if (bookDTO.getOwner() == null) {
             throw new Exceptions.OwnerRequiredException("Owner is required");
         }
-        Book book = convertToBook(bookRequest);
+        Book book = convertToBook(bookDTO);
         return bookRepository.save(book);
     }
 
-    public void removeBook(UUID bookUuid) {
-        Book book = bookRepository.findById(bookUuid)
+    public void removeBook(BookIdDTO bookIdDTO) {
+        Book book = bookRepository.findById(bookIdDTO.getUuid())
                 .orElseThrow(() -> new Exceptions.BookNotFoundException("Book not found"));
 
         if (book.getBookStatus() == BookStatus.BORROWED) {
             throw new Exceptions.CantRemoveBorrowedBookException("Cannot remove a borrowed book");
         }
 
-        bookRepository.deleteById(bookUuid);
+        bookRepository.deleteById(bookIdDTO.getUuid());
     }
 
     public Collection<Book> findBooksByStatus(BookStatus status) {

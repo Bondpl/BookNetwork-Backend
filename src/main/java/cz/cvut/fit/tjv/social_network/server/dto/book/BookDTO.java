@@ -10,7 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class BookRequest {
+public class BookDTO {
     @NotNull(message = "Title is required")
     private String title;
 

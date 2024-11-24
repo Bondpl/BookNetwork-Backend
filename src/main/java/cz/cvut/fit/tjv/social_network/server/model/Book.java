@@ -1,14 +1,17 @@
 package cz.cvut.fit.tjv.social_network.server.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Data
+@Setter
+@Getter
 @Table(name = "books")
 public class Book {
     @Id
@@ -34,6 +37,7 @@ public class Book {
     private User owner;
 
     @OneToMany(mappedBy = "book")
+    @JsonManagedReference
     private List<Rating> ratings;
 
 }

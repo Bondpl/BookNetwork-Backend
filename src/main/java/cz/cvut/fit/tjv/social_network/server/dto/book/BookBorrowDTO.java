@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class BookBorrowRequest {
+public class BookBorrowDTO {
     @NotNull(message = "user is required")
     private UUID borrower;
 

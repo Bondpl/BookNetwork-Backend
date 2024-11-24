@@ -1,7 +1,8 @@
 package cz.cvut.fit.tjv.social_network.server.controllers;
 
-import cz.cvut.fit.tjv.social_network.server.dto.book.BookBorrowRequest;
-import cz.cvut.fit.tjv.social_network.server.dto.book.BookRequest;
+import cz.cvut.fit.tjv.social_network.server.dto.book.BookBorrowDTO;
+import cz.cvut.fit.tjv.social_network.server.dto.book.BookDTO;
+import cz.cvut.fit.tjv.social_network.server.dto.book.BookIdDTO;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.BookStatus;
 import cz.cvut.fit.tjv.social_network.server.service.BookService;
@@ -50,22 +51,22 @@ public class BookController {
     }
 
     @PostMapping
-    public Book createBook(@Valid @RequestBody BookRequest bookRequest) {
-        return bookService.createBook(bookRequest);
+    public Book createBook(@Valid @RequestBody BookDTO bookDTO) {
+        return bookService.createBook(bookDTO);
     }
 
     @DeleteMapping
-    public void deleteBook(@PathVariable UUID uuid) {
-        bookService.removeBook(uuid);
+    public void deleteBook(@Valid @RequestBody BookIdDTO bookIdDTO) {
+        bookService.removeBook(bookIdDTO);
     }
 
     @PostMapping("/borrow")
-    public Book borrowBook(@Valid @RequestBody BookBorrowRequest bookBorrowRequest) {
-        return bookService.borrowBook(bookBorrowRequest);
+    public Book borrowBook(@Valid @RequestBody BookBorrowDTO bookBorrowDTO) {
+        return bookService.borrowBook(bookBorrowDTO);
     }
 
     @PostMapping("/return")
-    public void returnBook(@Valid @RequestBody BookBorrowRequest bookBorrowRequest) {
-        bookService.returnBook(bookBorrowRequest);
+    public void returnBook(@Valid @RequestBody BookBorrowDTO bookBorrowDTO) {
+        bookService.returnBook(bookBorrowDTO);
     }
 }
