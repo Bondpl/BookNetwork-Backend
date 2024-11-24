@@ -1,7 +1,8 @@
 package cz.cvut.fit.tjv.social_network.server.controllers;
 
-import cz.cvut.fit.tjv.social_network.server.dto.user.UserIdRequest;
-import cz.cvut.fit.tjv.social_network.server.dto.user.UserRequest;
+import cz.cvut.fit.tjv.social_network.server.dto.user.UserDTO;
+import cz.cvut.fit.tjv.social_network.server.dto.user.UserIdDTO;
+import cz.cvut.fit.tjv.social_network.server.dto.user.UserRegisterDTO;
 import cz.cvut.fit.tjv.social_network.server.model.User;
 import cz.cvut.fit.tjv.social_network.server.service.UserService;
 import jakarta.validation.Valid;
@@ -26,9 +27,9 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody UserRequest userRequest) {
+    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserRegisterDTO userDTO) {
         try {
-            User createdUser = userService.createUser(userRequest);
+            UserDTO createdUser = userService.createUser(userDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
@@ -36,9 +37,9 @@ public class UserController {
     }
 
     @PostMapping("/batch")
-    public ResponseEntity<List<User>> createUsers(@RequestBody List<@Valid UserRequest> userRequests) {
+    public ResponseEntity<List<User>> createUsers(@RequestBody List<@Valid UserDTO> userDTOS) {
         try {
-            List<User> createdUsers = userService.createUsers(userRequests);
+            List<User> createdUsers = userService.createUsers(userDTOS);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdUsers);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
@@ -46,9 +47,9 @@ public class UserController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<User> deleteUser(@Valid @RequestBody UserIdRequest userIdRequest) {
+    public ResponseEntity<User> deleteUser(@Valid @RequestBody UserIdDTO userIdDTO) {
         try {
-            User deletedUser = userService.deleteUser(userIdRequest);
+            User deletedUser = userService.deleteUser(userIdDTO);
             return ResponseEntity.ok(deletedUser);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
