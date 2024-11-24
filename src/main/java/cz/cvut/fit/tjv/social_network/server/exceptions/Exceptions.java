@@ -46,6 +46,12 @@ public class Exceptions {
         }
     }
 
+    public static class BookAlreadyReturnedException extends RuntimeException {
+        public BookAlreadyReturnedException(String message) {
+            super(message);
+        }
+    }
+
     public static class BorrowerNotFoundException extends RuntimeException {
         public BorrowerNotFoundException(String message) {
             super(message);
@@ -103,9 +109,17 @@ public class Exceptions {
         }
     }
 
-    public static class BookAlreadyReturnedException extends RuntimeException {
-        public BookAlreadyReturnedException(String message) {
+    public static class UserNotAuthorizedException extends RuntimeException {
+        public UserNotAuthorizedException(String message) {
             super(message);
         }
     }
+
+    public static class UserNotAdminException extends RuntimeException {
+        public UserNotAdminException(String message) {
+            super(message);
+        }
+    }
+
+
 }

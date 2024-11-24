@@ -48,6 +48,11 @@ public class GlobalExeptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(LocalDateTime.now(), e.getMessage(), request.getDescription(false)));
     }
 
+    @ExceptionHandler(Exceptions.BookAlreadyReturnedException.class)
+    public ResponseEntity<ErrorResponse> handleBookAlreadyReturnedException(Exceptions.BookAlreadyReturnedException e, WebRequest request) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(LocalDateTime.now(), e.getMessage(), request.getDescription(false)));
+    }
+
     @ExceptionHandler(Exceptions.OwnerNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleOwnerNotFoundException(Exceptions.OwnerNotFoundException e, WebRequest request) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(LocalDateTime.now(), e.getMessage(), request.getDescription(false)));
@@ -98,13 +103,4 @@ public class GlobalExeptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(LocalDateTime.now(), e.getMessage(), request.getDescription(false)));
     }
 
-    @ExceptionHandler(Exceptions.InvalidRequestException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidRequestException(Exceptions.InvalidRequestException e, WebRequest request) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(LocalDateTime.now(), e.getMessage(), request.getDescription(false)));
-    }
-
-    @ExceptionHandler(Exceptions.BookAlreadyReturnedException.class)
-    public ResponseEntity<ErrorResponse> handleBookAlreadyReturnedException(Exceptions.BookAlreadyReturnedException e, WebRequest request) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(LocalDateTime.now(), e.getMessage(), request.getDescription(false)));
-    }
 }
