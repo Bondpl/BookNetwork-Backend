@@ -1,6 +1,8 @@
 package service;
 
-import cz.cvut.fit.tjv.social_network.server.dto.book.BookRequest;
+import cz.cvut.fit.tjv.social_network.server.dto.book.BookBorrowDTO;
+import cz.cvut.fit.tjv.social_network.server.dto.book.BookDTO;
+import cz.cvut.fit.tjv.social_network.server.dto.book.BookIdDTO;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.BookStatus;
 import cz.cvut.fit.tjv.social_network.server.model.Transaction;
@@ -61,11 +63,16 @@ public class BookServiceTest {
 
     @Test
     void borrowBook_Success() {
+
+        BookBorrowDTO bookBorrowDTO = new BookBorrowDTO();
+        bookBorrowDTO.setBookId(bookUuid);
+        bookBorrowDTO.setBorrower(userUuid);
         when(bookRepository.findById(bookUuid)).thenReturn(Optional.of(book));
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
         when(userRepository.findById(book.getOwner().getUuid())).thenReturn(Optional.of(user));  // Mock owner lookup
 
-        Book result = bookService.borrowBook(bookUuid, userUuid);
+
+        Book result = bookService.borrowBook(bookBorrowDTO);
 
         assertEquals(BookStatus.BORROWED, result.getBookStatus());
         verify(transactionRepository, times(1)).save(any(Transaction.class));
@@ -74,11 +81,14 @@ public class BookServiceTest {
 
     @Test
     void borrowBook_BookAlreadyBorrowed() {
+        BookBorrowDTO bookBorrowDTO = new BookBorrowDTO();
+        bookBorrowDTO.setBookId(bookUuid);
+        bookBorrowDTO.setBorrower(userUuid);
         book.setBookStatus(BookStatus.BORROWED);
         when(bookRepository.findById(bookUuid)).thenReturn(Optional.of(book));
 
         try {
-            bookService.borrowBook(bookUuid, userUuid);
+            bookService.borrowBook(bookBorrowDTO);
         } catch (RuntimeException e) {
             assertEquals("Book is already borrowed", e.getMessage());
         }
@@ -86,10 +96,13 @@ public class BookServiceTest {
 
     @Test
     void borrowBook_BookNotFound() {
+        BookBorrowDTO bookBorrowDTO = new BookBorrowDTO();
+        bookBorrowDTO.setBookId(bookUuid);
+        bookBorrowDTO.setBorrower(userUuid);
         when(bookRepository.findById(bookUuid)).thenReturn(Optional.empty());
 
         try {
-            bookService.borrowBook(bookUuid, userUuid);
+            bookService.borrowBook(bookBorrowDTO);
         } catch (RuntimeException e) {
             assertEquals("Book not found", e.getMessage());
         }
@@ -97,12 +110,15 @@ public class BookServiceTest {
 
     @Test
     void borrowBook_BorrowerNotFound() {
+        BookBorrowDTO bookBorrowDTO = new BookBorrowDTO();
+        bookBorrowDTO.setBookId(bookUuid);
+        bookBorrowDTO.setBorrower(userUuid);
         when(bookRepository.findById(bookUuid)).thenReturn(Optional.of(book));
         when(userRepository.findById(userUuid)).thenReturn(Optional.empty());
         when(userRepository.findById(book.getOwner().getUuid())).thenReturn(Optional.of(user));
 
         try {
-            bookService.borrowBook(bookUuid, userUuid);
+            bookService.borrowBook(bookBorrowDTO);
         } catch (RuntimeException e) {
             assertEquals("Borrower not found", e.getMessage());
         }
@@ -110,16 +126,16 @@ public class BookServiceTest {
 
     @Test
     void createBook_Success() {
-        BookRequest bookRequest = new BookRequest();
-        bookRequest.setTitle("Title");
-        bookRequest.setAuthor("Author");
-        bookRequest.setBookStatus(BookStatus.AVAILABLE);
-        bookRequest.setOwner(user);
+        BookDTO bookDTO = new BookDTO();
+        bookDTO.setTitle("Title");
+        bookDTO.setAuthor("Author");
+        bookDTO.setBookStatus(BookStatus.AVAILABLE);
+        bookDTO.setOwner(user);
 
         when(userRepository.findById(userUuid)).thenReturn(Optional.of(user));
         when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Book result = bookService.createBook(bookRequest);
+        Book result = bookService.createBook(bookDTO);
 
         assertEquals("Title", result.getTitle());
         assertEquals("Author", result.getAuthor());
@@ -130,32 +146,37 @@ public class BookServiceTest {
 
     @Test
     void createBook_NoOwner() {
-        BookRequest bookRequest = new BookRequest();
-        bookRequest.setTitle("Title");
-        bookRequest.setAuthor("Author");
-        bookRequest.setBookStatus(BookStatus.AVAILABLE);
-        
+        BookDTO bookDTO = new BookDTO();
+        bookDTO.setTitle("Title");
+        bookDTO.setAuthor("Author");
+        bookDTO.setBookStatus(BookStatus.AVAILABLE);
 
-        assertThrows(RuntimeException.class, () -> bookService.createBook(bookRequest));
+
+        assertThrows(RuntimeException.class, () -> bookService.createBook(bookDTO));
     }
 
     @Test
     void removeBook_BookAvailable() {
+        BookIdDTO bookIdDTO = new BookIdDTO();
+        bookIdDTO.setUuid(bookUuid);
         when(bookRepository.findById(bookUuid)).thenReturn(Optional.of(book));
 
-        bookService.removeBook(bookUuid);
+        bookService.removeBook(bookIdDTO);
 
         verify(bookRepository, times(1)).deleteById(bookUuid);
     }
 
     @Test
     void removeBook_BookLent() {
+        BookIdDTO bookIdDTO = new BookIdDTO();
+        bookIdDTO.setUuid(bookUuid);
+
         book.setBookStatus(BookStatus.BORROWED);
         when(bookRepository.findById(bookUuid)).thenReturn(Optional.of(book));
 
         RuntimeException thrown = assertThrows(
                 RuntimeException.class,
-                () -> bookService.removeBook(bookUuid)
+                () -> bookService.removeBook(bookIdDTO)
         );
 
         assertEquals("Cannot remove a borrowed book", thrown.getMessage());
@@ -165,10 +186,12 @@ public class BookServiceTest {
     @Test
     void removeBook_BookNotFound() {
         UUID nonExistentBookUuid = UUID.randomUUID();
+        BookIdDTO bookIdDTO = new BookIdDTO();
+        bookIdDTO.setUuid(nonExistentBookUuid);
 
         RuntimeException thrown = assertThrows(
                 RuntimeException.class,
-                () -> bookService.removeBook(nonExistentBookUuid)
+                () -> bookService.removeBook(bookIdDTO)
         );
 
         assertEquals("Book not found", thrown.getMessage());

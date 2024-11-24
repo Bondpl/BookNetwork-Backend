@@ -1,8 +1,8 @@
 package service;
 
 
-import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionRequest;
-import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionUpdateRequest;
+import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionDTO;
+import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionUpdateDTO;
 import cz.cvut.fit.tjv.social_network.server.exceptions.Exceptions;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.Transaction;
@@ -54,11 +54,11 @@ class TransactionServiceTest {
 
     @Test
     void createTransaction_success() {
-        TransactionRequest transactionRequest = new TransactionRequest();
-        transactionRequest.setBorrowerUuid(borrowerUuid);
-        transactionRequest.setLenderUuid(lenderUuid);
-        transactionRequest.setBookUuid(bookUuid);
-        transactionRequest.setStatus(TransactionStatus.ONGOING);
+        TransactionDTO transactionDTO = new TransactionDTO();
+        transactionDTO.setBorrowerUuid(borrowerUuid);
+        transactionDTO.setLenderUuid(lenderUuid);
+        transactionDTO.setBookUuid(bookUuid);
+        transactionDTO.setStatus(TransactionStatus.ONGOING);
 
         User borrower = new User();
         User lender = new User();
@@ -77,7 +77,7 @@ class TransactionServiceTest {
 
         when(transactionRepository.save(any(Transaction.class))).thenReturn(savedTransaction);
 
-        Transaction transaction = transactionService.createTransaction(transactionRequest);
+        Transaction transaction = transactionService.createTransaction(transactionDTO);
 
         assertNotNull(transaction);
         assertEquals(borrower, transaction.getBorrower());
@@ -90,11 +90,11 @@ class TransactionServiceTest {
 
     @Test
     void createTransaction_bookAlreadyBorrowed_throwsException() {
-        TransactionRequest transactionRequest = new TransactionRequest();
-        transactionRequest.setBorrowerUuid(borrowerUuid);
-        transactionRequest.setLenderUuid(lenderUuid);
-        transactionRequest.setBookUuid(bookUuid);
-        transactionRequest.setStatus(TransactionStatus.ONGOING);
+        TransactionDTO transactionDTO = new TransactionDTO();
+        transactionDTO.setBorrowerUuid(borrowerUuid);
+        transactionDTO.setLenderUuid(lenderUuid);
+        transactionDTO.setBookUuid(bookUuid);
+        transactionDTO.setStatus(TransactionStatus.ONGOING);
 
         User borrower = new User();
         User lender = new User();
@@ -107,7 +107,7 @@ class TransactionServiceTest {
                 .thenReturn(Optional.of(new Transaction()));
 
         Exceptions.BookAlreadyBorrowedException exception = assertThrows(Exceptions.BookAlreadyBorrowedException.class, () ->
-                transactionService.createTransaction(transactionRequest));
+                transactionService.createTransaction(transactionDTO));
 
         assertEquals("Book is already borrowed.", exception.getMessage());
         verify(transactionRepository, never()).save(any(Transaction.class));
@@ -115,9 +115,9 @@ class TransactionServiceTest {
 
     @Test
     void updateTransactionStatus_success() {
-        TransactionUpdateRequest transactionUpdateRequest = new TransactionUpdateRequest();
-        transactionUpdateRequest.setUuid(transactionUuid);
-        transactionUpdateRequest.setStatus(TransactionStatus.COMPLETED);
+        TransactionUpdateDTO transactionUpdateDTO = new TransactionUpdateDTO();
+        transactionUpdateDTO.setUuid(transactionUuid);
+        transactionUpdateDTO.setStatus(TransactionStatus.COMPLETED);
 
         Transaction existingTransaction = new Transaction();
         existingTransaction.setUuid(transactionUuid);
@@ -132,7 +132,7 @@ class TransactionServiceTest {
 
         when(transactionRepository.save(existingTransaction)).thenReturn(updatedTransaction);
 
-        Transaction result = transactionService.updateTransactionStatus(transactionUpdateRequest);
+        Transaction result = transactionService.updateTransactionStatus(transactionUpdateDTO);
 
         assertNotNull(result);
         assertEquals(TransactionStatus.COMPLETED, result.getStatus());
@@ -144,14 +144,14 @@ class TransactionServiceTest {
 
     @Test
     void updateTransactionStatus_transactionNotFound_throwsException() {
-        TransactionUpdateRequest transactionUpdateRequest = new TransactionUpdateRequest();
-        transactionUpdateRequest.setUuid(transactionUuid);
-        transactionUpdateRequest.setStatus(TransactionStatus.COMPLETED);
+        TransactionUpdateDTO transactionUpdateDTO = new TransactionUpdateDTO();
+        transactionUpdateDTO.setUuid(transactionUuid);
+        transactionUpdateDTO.setStatus(TransactionStatus.COMPLETED);
 
         when(transactionRepository.findById(transactionUuid)).thenReturn(Optional.empty());
 
         Exceptions.TransactionNotFoundException exception = assertThrows(Exceptions.TransactionNotFoundException.class, () ->
-                transactionService.updateTransactionStatus(transactionUpdateRequest));
+                transactionService.updateTransactionStatus(transactionUpdateDTO));
 
         assertEquals("Transaction not found.", exception.getMessage());
         verify(transactionRepository, never()).save(any(Transaction.class));

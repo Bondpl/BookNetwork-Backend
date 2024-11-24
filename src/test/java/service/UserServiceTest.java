@@ -1,7 +1,8 @@
 package service;
 
-import cz.cvut.fit.tjv.social_network.server.dto.user.UserIdRequest;
-import cz.cvut.fit.tjv.social_network.server.dto.user.UserRequest;
+import cz.cvut.fit.tjv.social_network.server.dto.user.UserDTO;
+import cz.cvut.fit.tjv.social_network.server.dto.user.UserIdDTO;
+import cz.cvut.fit.tjv.social_network.server.dto.user.UserRegisterDTO;
 import cz.cvut.fit.tjv.social_network.server.exceptions.Exceptions;
 import cz.cvut.fit.tjv.social_network.server.model.Role;
 import cz.cvut.fit.tjv.social_network.server.model.User;
@@ -56,60 +57,78 @@ class UserServiceTest {
 
     @Test
     void createUser_Successful() {
-        UserRequest userRequest = new UserRequest();
-        userRequest.setUsername("test");
-        userRequest.setEmail("123@gmail.com");
-        userRequest.setPassword("123");
-        userRequest.setDescription("test");
-        userRequest.setProfilePictureUrl("test");
-        userRequest.setRole(Role.USER);
-        when(userRepository.existsByEmail(userRequest.getEmail())).thenReturn(false);
-        when(userRepository.existsByUsername(userRequest.getUsername())).thenReturn(false);
-        when(passwordEncoder.encode(anyString())).thenReturn("hashedPassword");
-        when(userRepository.save(any(User.class))).thenReturn(new User());
+        UserRegisterDTO userRegisterDTO = new UserRegisterDTO();
+        userRegisterDTO.setUsername("test");
+        userRegisterDTO.setEmail("123@gmail.com");
+        userRegisterDTO.setPassword("123");
+        userRegisterDTO.setDescription("test");
+        userRegisterDTO.setProfilePictureUrl("test");
+        userRegisterDTO.setRole(Role.USER);
 
-        User createdUser = userService.createUser(userRequest);
+        User user = new User();
+        user.setUuid(UUID.randomUUID());
+        user.setUsername(userRegisterDTO.getUsername());
+        user.setEmail(userRegisterDTO.getEmail());
+        user.setPassword("hashedPassword");
+        user.setDescription(userRegisterDTO.getDescription());
+        user.setProfilePictureUrl(userRegisterDTO.getProfilePictureUrl());
+        user.setRole(userRegisterDTO.getRole());
+
+        when(passwordEncoder.encode(anyString())).thenReturn("hashedPassword");
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        UserDTO createdUser = userService.createUser(userRegisterDTO);
 
         assertNotNull(createdUser);
+        assertNotNull(createdUser.getUuid());
+        assertEquals(userRegisterDTO.getUsername(), createdUser.getUsername());
+        assertEquals(userRegisterDTO.getEmail(), createdUser.getEmail());
+        assertEquals(userRegisterDTO.getDescription(), createdUser.getDescription());
+        assertEquals(userRegisterDTO.getProfilePictureUrl(), createdUser.getProfilePictureUrl());
+        assertEquals(userRegisterDTO.getRole(), createdUser.getRole());
+
         verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
     void createUser_DuplicateEmail() {
-        UserRequest userRequest = new UserRequest();
-        userRequest.setUsername("test");
-        userRequest.setEmail("123@gmail.com");
-        userRequest.setPassword("123");
-        userRequest.setDescription("test");
-        userRequest.setProfilePictureUrl("test");
-        userRequest.setRole(Role.USER);
-        when(userRepository.existsByEmail(userRequest.getEmail())).thenReturn(true);
+        UserRegisterDTO userDTO = new UserRegisterDTO();
+        userDTO.setUsername("test");
+        userDTO.setEmail("123@gmail.com");
+        userDTO.setPassword("123");
+        userDTO.setDescription("test");
+        userDTO.setProfilePictureUrl("test");
+        userDTO.setRole(Role.USER);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.createUser(userRequest));
-        assertEquals("User with this email already exists", exception.getMessage());
+        when(userRepository.existsByEmail(userDTO.getEmail())).thenReturn(true);
+
+        assertThrows(Exceptions.UserEmailAlreadyExistsException.class, () -> {
+            userService.createUser(userDTO);
+        });
     }
 
     @Test
     void createUser_DuplicateUsername() {
-        UserRequest userRequest = new UserRequest();
-        userRequest.setUsername("test");
-        userRequest.setEmail("123@gmail.com");
-        userRequest.setPassword("123");
-        userRequest.setDescription("test");
-        userRequest.setProfilePictureUrl("test");
-        userRequest.setRole(Role.USER);
-        when(userRepository.existsByEmail(userRequest.getEmail())).thenReturn(false);
-        when(userRepository.existsByUsername(userRequest.getUsername())).thenReturn(true);
+        UserRegisterDTO userDTO = new UserRegisterDTO();
+        userDTO.setUsername("test");
+        userDTO.setEmail("123@gmail.com");
+        userDTO.setPassword("123");
+        userDTO.setDescription("test");
+        userDTO.setProfilePictureUrl("test");
+        userDTO.setRole(Role.USER);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.createUser(userRequest));
-        assertEquals("User with this username already exists", exception.getMessage());
+        when(userRepository.existsByUsername(userDTO.getUsername())).thenReturn(true);
+
+        assertThrows(Exceptions.UserUsernameAlreadyExistsException.class, () -> {
+            userService.createUser(userDTO);
+        });
     }
 
     @Test
     void getUserById_Found() {
-        UserIdRequest userIdRequest = new UserIdRequest();
+        UserIdDTO userIdDTO = new UserIdDTO();
         UUID uuid = UUID.randomUUID();
-        userIdRequest.setUuid(uuid);
+        userIdDTO.setUuid(uuid);
 
         User user = new User();
         user.setUuid(uuid);
@@ -126,8 +145,8 @@ class UserServiceTest {
     @Test
     void getUserById_NotFound() {
         UUID uuid = UUID.randomUUID();
-        UserIdRequest userIdRequest = new UserIdRequest();
-        userIdRequest.setUuid(uuid);
+        UserIdDTO userIdDTO = new UserIdDTO();
+        userIdDTO.setUuid(uuid);
         when(userRepository.findById(uuid)).thenReturn(Optional.empty());
 
         Exceptions.UserNotFoundException exception = assertThrows(Exceptions.UserNotFoundException.class, () -> userService.getUserById(uuid));
@@ -137,29 +156,29 @@ class UserServiceTest {
 
     @Test
     void createUsers_Successful() {
-        UserRequest userRequest = new UserRequest();
-        userRequest.setUsername("test");
-        userRequest.setEmail("123@gmail.com");
-        userRequest.setPassword("123");
-        userRequest.setDescription("test");
-        userRequest.setProfilePictureUrl("test");
-        userRequest.setRole(Role.USER);
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUsername("test");
+        userDTO.setEmail("123@gmail.com");
+        userDTO.setPassword("123");
+        userDTO.setDescription("test");
+        userDTO.setProfilePictureUrl("test");
+        userDTO.setRole(Role.USER);
 
 
-        UserRequest userRequest2 = new UserRequest();
-        userRequest2.setUsername("tesst");
-        userRequest2.setEmail("12d3@gmail.com");
-        userRequest2.setPassword("123");
-        userRequest2.setDescription("test");
-        userRequest2.setProfilePictureUrl("test");
-        userRequest2.setRole(Role.USER);
+        UserDTO userDTO2 = new UserDTO();
+        userDTO2.setUsername("tesst");
+        userDTO2.setEmail("12d3@gmail.com");
+        userDTO2.setPassword("123");
+        userDTO2.setDescription("test");
+        userDTO2.setProfilePictureUrl("test");
+        userDTO2.setRole(Role.USER);
 
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("hashedPassword");
         when(userRepository.save(any(User.class))).thenReturn(new User());
 
-        List<User> users = userService.createUsers(Arrays.asList(userRequest, userRequest2));
+        List<User> users = userService.createUsers(Arrays.asList(userDTO, userDTO2));
 
         assertEquals(2, users.size());
         verify(userRepository, times(2)).save(any(User.class));
@@ -172,9 +191,9 @@ class UserServiceTest {
         user.setUuid(uuid);
         when(userRepository.findById(uuid)).thenReturn(Optional.of(user));
 
-        UserIdRequest userIdRequest = new UserIdRequest();
-        userIdRequest.setUuid(uuid);
-        User deletedUser = userService.deleteUser(userIdRequest);
+        UserIdDTO userIdDTO = new UserIdDTO();
+        userIdDTO.setUuid(uuid);
+        User deletedUser = userService.deleteUser(userIdDTO);
 
 
         assertEquals(uuid, deletedUser.getUuid());
@@ -185,9 +204,9 @@ class UserServiceTest {
     void deleteUser_UserNotFound() {
         UUID uuid = UUID.randomUUID();
         when(userRepository.findById(uuid)).thenReturn(Optional.empty());
-        UserIdRequest userIdRequest = new UserIdRequest();
-        userIdRequest.setUuid(uuid);
-        Exceptions.UserNotFoundException exception = assertThrows(Exceptions.UserNotFoundException.class, () -> userService.deleteUser(userIdRequest));
+        UserIdDTO userIdDTO = new UserIdDTO();
+        userIdDTO.setUuid(uuid);
+        Exceptions.UserNotFoundException exception = assertThrows(Exceptions.UserNotFoundException.class, () -> userService.deleteUser(userIdDTO));
 
         assertEquals("User with UUID " + uuid + " does not exist", exception.getMessage());
         verify(userRepository, never()).delete(any(User.class));
@@ -231,4 +250,5 @@ class UserServiceTest {
         assertEquals("User with UUID " + uuid + " does not exist", exception.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
+
 }

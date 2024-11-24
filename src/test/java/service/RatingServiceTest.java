@@ -1,7 +1,7 @@
 package service;
 
 
-import cz.cvut.fit.tjv.social_network.server.dto.rating.RatingIdRequest;
+import cz.cvut.fit.tjv.social_network.server.dto.rating.RatingIdDTO;
 import cz.cvut.fit.tjv.social_network.server.exceptions.Exceptions;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.Rating;
@@ -61,9 +61,9 @@ class RatingServiceTest {
     @Test
     void testGetRatingById() {
 
-        RatingIdRequest ratingIdRequest = new RatingIdRequest();
-        ratingIdRequest.setRatingId(UUID.randomUUID());
-        UUID ratingId = ratingIdRequest.getRatingId();
+        RatingIdDTO ratingIdDTO = new RatingIdDTO();
+        ratingIdDTO.setUuid(UUID.randomUUID());
+        UUID ratingId = ratingIdDTO.getUuid();
         Rating rating = new Rating();
         rating.setUuid(ratingId);
 
@@ -71,7 +71,7 @@ class RatingServiceTest {
         when(ratingRepository.findById(ratingId)).thenReturn(Optional.of(rating));
 
 
-        Rating foundRating = ratingService.getRatingById(ratingId);
+        Rating foundRating = ratingService.getRatingById(ratingIdDTO);
 
         assertNotNull(foundRating);
         assertEquals(ratingId, foundRating.getUuid());
@@ -81,13 +81,14 @@ class RatingServiceTest {
 
     @Test
     void testGetRatingById_NotFound() {
-        UUID ratingId = UUID.randomUUID();
-        when(ratingRepository.existsById(ratingId)).thenReturn(false);
+        RatingIdDTO ratingIdDTO = new RatingIdDTO();
+        ratingIdDTO.setUuid(UUID.randomUUID());
+        when(ratingRepository.existsById(ratingIdDTO.getUuid())).thenReturn(false);
 
         assertThrows(Exceptions.RatingNotFoundException.class, () -> {
-            ratingService.getRatingById(ratingId);
+            ratingService.getRatingById(ratingIdDTO);
         });
-        verify(ratingRepository, times(1)).existsById(ratingId);
+        verify(ratingRepository, times(1)).existsById(ratingIdDTO.getUuid());
     }
 
     @Test
