@@ -1,49 +1,86 @@
 ## Project:
-- Book Social Network 
-Users can lend and borrow books from others in the community. Each book would have a rental history, and users could rate the books.
 
-### User:
+- Book Social Network
+  Users can lend and borrow books from others in the community. Each book would have a rental history, and users could
+  rate the books.
 
-- **id**: `Long` (Primary Key)
-- **name**: `String`
-- **email**: `String`
-- **password**: `String`
-- **description**: `String`
-- **profilePictureUrl**: `String`
-- **role**: `Enum (User, Admin, Banned)`
+## Database Schema:
 
-**Relationships**:
+![image info](database.png)
 
-- **One-to-Many with Books**: A user can lend multiple books.
-- **Many-to-Many with Books**: A user can borrow multiple books, and each book can be borrowed by multiple users over time.
+## Tables Overview
 
-### Book:
+### 1. **Users Table**
 
-- **id**: `Long` (Primary Key)
-- **title**: `String`
-- **author**: `String`
-- **isbn**: `String`
-- **status**: `Enum` (`AVAILABLE`, `BORROWED`)
-- **averageRating**: `Double`
+The `users` table stores information about users of the application.
 
-**Relationships**:
-**Many-to-One with Borrower (User)**: Many books can be borrowed by one user.
+| Field                 | Type           | Description                                                  |
+|-----------------------|----------------|--------------------------------------------------------------|
+| `uuid`                | `uuid`         | Primary key, unique identifier for each user.                |
+| `description`         | `varchar(255)` | Optional description for the user.                           |
+| `email`               | `varchar(255)` | User's email address. Must be unique.                        |
+| `password`            | `varchar(255)` | User's password.                                             |
+| `profile_picture_url` | `varchar(255)` | URL of the user's profile picture.                           |
+| `role`                | `varchar(255)` | The user's role. Possible values: `ADMIN`, `USER`, `BANNED`. |
+| `username`            | `varchar(255)` | User's unique username.                                      |
 
-### Transaction history:
+### 2. **Books Table**
 
-- **id**: `Long` (Primary Key)
-- **borrowerId**: `User`
-- **lenderId**: `User`
-- **bookId**: `Book`
-- **status**: `Enum` (`ONGOING`, `COMPLETED`)
+The `books` table stores information about books available in the system.
 
-### Rating:
+| Field         | Type           | Description                                                              |
+|---------------|----------------|--------------------------------------------------------------------------|
+| `uuid`        | `uuid`         | Primary key, unique identifier for each book.                            |
+| `author`      | `varchar(255)` | Author of the book.                                                      |
+| `book_status` | `varchar(255)` | The status of the book. Possible values: `AVAILABLE`, `BORROWED`.        |
+| `cover_url`   | `varchar(255)` | URL of the book's cover image.                                           |
+| `isbn`        | `varchar(255)` | ISBN of the book.                                                        |
+| `title`       | `varchar(255)` | Title of the book.                                                       |
+| `owner_uuid`  | `uuid`         | Foreign key to the `users` table. Represents the user who owns the book. |
 
-- **id**: `Long` (Primary Key)
-- **userId**: `User`
-- **bookId**: `Book`
-- **lenderId / borrowerId**: `User` (Reference to the user being rated, for borrower/lender feedback)
-- **ratingValue**: `Integer` (Numerical rating, e.g., 1 to 5)
+### 3. **Ratings Table**
+
+The `ratings` table stores ratings given by users to books.
+
+| Field       | Type      | Description                                                                |
+|-------------|-----------|----------------------------------------------------------------------------|
+| `uuid`      | `uuid`    | Primary key, unique identifier for each rating.                            |
+| `rating`    | `integer` | The rating given to the book (e.g., 1-5).                                  |
+| `book_uuid` | `uuid`    | Foreign key to the `books` table. References the book being rated.         |
+| `user_uuid` | `uuid`    | Foreign key to the `users` table. Represents the user who gave the rating. |
+
+### 4. **Transactions Table**
+
+The `transactions` table tracks book borrow and return transactions between users.
+
+| Field           | Type           | Description                                                                        |
+|-----------------|----------------|------------------------------------------------------------------------------------|
+| `uuid`          | `uuid`         | Primary key, unique identifier for each transaction.                               |
+| `status`        | `varchar(255)` | The status of the transaction. Possible values: `ONGOING`, `COMPLETED`.            |
+| `book_uuid`     | `uuid`         | Foreign key to the `books` table. Represents the book involved in the transaction. |
+| `borrower_uuid` | `uuid`         | Foreign key to the `users` table. Represents the user borrowing the book.          |
+| `lender_uuid`   | `uuid`         | Foreign key to the `users` table. Represents the user lending the book.            |
+
+## Relationships
+
+1. **Users → Books**: A user can own multiple books. This is represented by the `owner_uuid` foreign key in the `books`
+   table, which links to the `uuid` field in the `users` table.
+
+2. **Books → Ratings**: A book can have multiple ratings from different users. The `ratings` table holds a foreign key (
+   `book_uuid`) that references the `uuid` field in the `books` table.
+
+3. **Users → Ratings**: A user can give multiple ratings to different books. The `ratings` table holds a foreign key (
+   `user_uuid`) that references the `uuid` field in the `users` table.
+
+4. **Users → Transactions**: A user can be both the borrower and the lender of multiple books. The `transactions` table
+   holds two foreign keys:
+
+- `borrower_uuid` references the `uuid` field in the `users` table.
+- `lender_uuid` references the `uuid` field in the `users` table.
+
+5. **Books → Transactions**: A book can be involved in multiple transactions. The `transactions` table holds a foreign
+   key (`book_uuid`) that references the `uuid` field in the `books` table.
+
 ### Query:
 
 - **Find all books with rating above 4.0**.
