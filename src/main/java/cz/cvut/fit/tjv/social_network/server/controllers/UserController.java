@@ -9,11 +9,14 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+
+import static cz.cvut.fit.tjv.social_network.server.service.UserService.getUserDTO;
 
 @RestController
 @RequestMapping("/users")
@@ -65,4 +68,22 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
+
+    @GetMapping("/self")
+    public ResponseEntity<UserDTO> getSelf() {
+        try {
+            // Get the authenticated user from the SecurityContext and map it to UserDTO
+            UserDTO userDTO = mapToDTO((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+
+            return ResponseEntity.ok(userDTO);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+    }
+
+    private UserDTO mapToDTO(User user) {
+        return getUserDTO(user);
+    }
+
+
 }

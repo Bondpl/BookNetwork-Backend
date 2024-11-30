@@ -9,6 +9,7 @@ import cz.cvut.fit.tjv.social_network.server.model.User;
 import cz.cvut.fit.tjv.social_network.server.repository.UserRepository;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -25,6 +26,17 @@ public class UserService implements UserDetailsService {
 
     private PasswordEncoder passwordEncoder;
     private UserRepository userRepository;
+
+    public static UserDTO getUserDTO(User user) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUuid(user.getUuid());
+        userDTO.setUsername(user.getUsername());
+        userDTO.setEmail(user.getEmail());
+        userDTO.setDescription(user.getDescription());
+        userDTO.setProfilePictureUrl(user.getProfilePictureUrl());
+        userDTO.setRole(user.getRole());
+        return userDTO;
+    }
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -59,14 +71,7 @@ public class UserService implements UserDetailsService {
     }
 
     private UserDTO mapToDTO(User user) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUuid(user.getUuid());
-        userDTO.setUsername(user.getUsername());
-        userDTO.setEmail(user.getEmail());
-        userDTO.setDescription(user.getDescription());
-        userDTO.setProfilePictureUrl(user.getProfilePictureUrl());
-        userDTO.setRole(user.getRole());
-        return userDTO;
+        return getUserDTO(user);
     }
 
     public User getUserById(UUID uuid) {
@@ -132,4 +137,10 @@ public class UserService implements UserDetailsService {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User with username " + email + " not found"));
     }
+
+    public UserDTO getSelf() {
+        return mapToDTO((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+    }
+
+
 }
