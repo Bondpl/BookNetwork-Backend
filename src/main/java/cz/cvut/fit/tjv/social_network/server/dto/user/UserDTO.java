@@ -1,6 +1,7 @@
 package cz.cvut.fit.tjv.social_network.server.dto.user;
 
 import cz.cvut.fit.tjv.social_network.server.model.Role;
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -24,10 +25,14 @@ public class UserDTO {
     @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
 
-    private String description;
-
-    private String profilePictureUrl;
-
     @NotNull(message = "Role is required")
     private Role role;
+
+    @Nullable
+    private String description;
+
+    @Nullable
+    private String profilePictureUrl;
+
+
 }

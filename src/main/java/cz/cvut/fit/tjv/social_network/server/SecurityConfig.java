@@ -1,8 +1,9 @@
 package cz.cvut.fit.tjv.social_network.server;
 
-import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -20,7 +21,6 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@AllArgsConstructor
 public class SecurityConfig {
 
     @Bean
@@ -40,7 +40,7 @@ public class SecurityConfig {
                 .headers(headers -> headers
                         .cacheControl(Customizer.withDefaults()))
 
-                .cors(cors -> cors.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable()) // Explicitly disable CSRF protection
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login", "/auth/register").permitAll()
@@ -50,6 +50,9 @@ public class SecurityConfig {
                         .logoutUrl("/auth/logout") // Custom logout URL
                         .permitAll()
                 )
+
+                .exceptionHandling(exeptionHandling -> exeptionHandling
+                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint()))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // Ensure session is created if required
                 );
@@ -60,13 +63,18 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cors = new CorsConfiguration();
         cors.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
-        cors.setAllowedOrigins(List.of("http://localhost:5432", "http://localhost:8080"));
+        cors.setAllowedOrigins(List.of("http://localhost:5432", "http://localhost:8080", "http://localhost:5173"));
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "DELETE"));
         cors.setAllowCredentials(true);
         cors.setExposedHeaders(List.of("Authorization"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cors);
         return source;
+    }
+
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.fromHierarchy("ROLE_ADMIN > ROLE_USER");
     }
 
 }
