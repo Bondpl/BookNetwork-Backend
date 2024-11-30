@@ -87,5 +87,12 @@ public class TransactionService {
         transaction.setStatus(transactionUpdateDTO.getStatus());
         return transactionRepository.save(transaction);
     }
-    
+
+    public Collection<Book> findBooksBorrowedByUser(UUID userUuid) {
+        return transactionRepository.findBooksBorrowedByUser(userUuid);
+    }
+
+    public Collection<Book> findBooksLentByUser(UUID userUuid) {
+        return transactionRepository.findBooksLentByUser(userUuid);
+    }
 }

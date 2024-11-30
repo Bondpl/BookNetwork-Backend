@@ -6,8 +6,10 @@ import cz.cvut.fit.tjv.social_network.server.dto.book.BookIdDTO;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.BookStatus;
 import cz.cvut.fit.tjv.social_network.server.service.BookService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
@@ -23,16 +25,6 @@ public class BookController {
     @GetMapping
     public Collection<Book> getAllBooks() {
         return bookService.getAllBooks();
-    }
-
-    @GetMapping("/user/borrowed/{uuid}")
-    public Collection<Book> getBooksBorrowedByUser(@PathVariable UUID uuid) {
-        return bookService.getBooksBorrowedByUser(uuid);
-    }
-
-    @GetMapping("/user/owned/{uuid}")
-    public Collection<Book> getBooksOwnedByUser(@PathVariable UUID uuid) {
-        return bookService.getBooksOwnedByUser(uuid);
     }
 
     @GetMapping("/rating/{rating}")
@@ -69,4 +61,21 @@ public class BookController {
     public void returnBook(@Valid @RequestBody BookBorrowDTO bookBorrowDTO) {
         bookService.returnBook(bookBorrowDTO);
     }
+
+    @GetMapping("/owned")
+    public Collection<Book> getBooksOwnedByOwner(HttpServletRequest request) {
+        // Retrieve the user's authentication
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        // Retrieve the user's UUID from the session
+        String userEmail = authentication.getName();
+
+        // Ensure the user is authenticated
+        if (userEmail == null) {
+            throw new IllegalStateException("User is not authenticated.");
+        }
+
+        // Fetch owned books for the user
+        return bookService.getBooksOwnedByUser(userEmail);
+    }
+
 }

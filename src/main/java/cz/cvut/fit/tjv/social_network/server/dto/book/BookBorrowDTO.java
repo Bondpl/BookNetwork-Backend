@@ -7,9 +7,6 @@ import java.util.UUID;
 
 @Data
 public class BookBorrowDTO {
-    @NotNull(message = "user is required")
-    private UUID borrower;
-
     @NotNull(message = "book Uuid is required")
     private UUID bookId;
 }

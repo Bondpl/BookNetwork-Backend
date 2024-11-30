@@ -3,17 +3,22 @@ package cz.cvut.fit.tjv.social_network.server.controllers;
 import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionDTO;
 import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionIdDTO;
 import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionUpdateDTO;
+import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.Transaction;
 import cz.cvut.fit.tjv.social_network.server.service.BookService;
 import cz.cvut.fit.tjv.social_network.server.service.TransactionService;
 import cz.cvut.fit.tjv.social_network.server.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collection;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/transactions")
@@ -56,5 +61,31 @@ public class TransactionController {
     @GetMapping("/book")
     public Collection<Transaction> getTransactionsOfBook(@Valid @RequestBody TransactionIdDTO uuid) {
         return transactionService.getTransactionsOfBook(uuid.getUuid());
+    }
+
+    @GetMapping("/user/borrowed")
+    public Collection<Book> findBooksBorrowedByUser(HttpServletRequest request) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not authenticated");
+        }
+
+        // Retrieve the user's UUID from the authentication principal (assuming it's stored in the principal)
+        UUID userUuid = UUID.fromString(authentication.getName()); // Replace with correct method if UUID is stored differently
+        return transactionService.findBooksBorrowedByUser(userUuid);
+    }
+
+    @GetMapping("/user/lent")
+    public Collection<Book> findBooksLentByUser(HttpServletRequest request) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not authenticated");
+        }
+
+        // Retrieve the user's UUID from the authentication principal
+        UUID userUuid = UUID.fromString(authentication.getName());
+        return transactionService.findBooksLentByUser(userUuid);
     }
 }
