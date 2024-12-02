@@ -9,6 +9,7 @@ import cz.cvut.fit.tjv.social_network.server.service.BookService;
 import cz.cvut.fit.tjv.social_network.server.service.TransactionService;
 import cz.cvut.fit.tjv.social_network.server.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -59,8 +60,38 @@ public class TransactionController {
     }
 
     @GetMapping("/book")
-    public Collection<Transaction> getTransactionsOfBook(@Valid @RequestBody TransactionIdDTO uuid) {
-        return transactionService.getTransactionsOfBook(uuid.getUuid());
+    public Collection<Transaction> getTransactionsOfBook(HttpServletRequest request) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not authenticated");
+        }
+
+        String userEmail = authentication.getName(); // Replace with correct method if UUID is stored differently
+
+        return transactionService.findBorrowedTransactionsOfBooksOwnedByUser(userEmail);
+    }
+
+    @GetMapping("/transactions/{bookId}")
+    public Collection<Transaction> getTransactionsOfBook(@PathVariable UUID bookId, HttpServletRequest request) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not authenticated");
+        }
+
+        // Assuming the user information is stored in the session
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Session is not available");
+        }
+
+        UUID userUuid = (UUID) session.getAttribute("userUuid");
+        if (userUuid == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User UUID is not available in session");
+        }
+
+        return transactionService.getTransactionsOfBook(bookId);
     }
 
     @GetMapping("/user/borrowed")
@@ -71,9 +102,8 @@ public class TransactionController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not authenticated");
         }
 
-        // Retrieve the user's UUID from the authentication principal (assuming it's stored in the principal)
-        UUID userUuid = UUID.fromString(authentication.getName()); // Replace with correct method if UUID is stored differently
-        return transactionService.findBooksBorrowedByUser(userUuid);
+        String userEmail = authentication.getName(); // Replace with correct method if UUID is stored differently
+        return transactionService.findBooksBorrowedByUser(userEmail);
     }
 
     @GetMapping("/user/lent")

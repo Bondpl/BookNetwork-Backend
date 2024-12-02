@@ -27,9 +27,18 @@ public class BookController {
         return bookService.getAllBooks();
     }
 
-    @GetMapping("/rating/{rating}")
-    public Collection<Book> getBooksByRatingGreaterThan(@PathVariable int rating) {
-        return bookService.findBooksByRatingGreaterThan(rating);
+    @GetMapping("/ratingGreater")
+    public Collection<Book> getBooksByRatingGreaterThan(HttpServletRequest request) {
+        // Retrieve the user's authentication
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        // Retrieve the user's UUID from the session
+        String userEmail = authentication.getName();
+
+        // Ensure the user is authenticated
+        if (userEmail == null) {
+            throw new IllegalStateException("User is not authenticated.");
+        }
+        return bookService.findBooksByRatingGreaterThan();
     }
 
     @GetMapping("/status/{status}")
@@ -76,6 +85,22 @@ public class BookController {
 
         // Fetch owned books for the user
         return bookService.getBooksOwnedByUser(userEmail);
+    }
+
+    @GetMapping("/borrowed")
+    public Collection<Book> getBooksBorrowedByUser(HttpServletRequest request) {
+        // Retrieve the user's authentication
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        // Retrieve the user's UUID from the session
+        String userEmail = authentication.getName();
+
+        // Ensure the user is authenticated
+        if (userEmail == null) {
+            throw new IllegalStateException("User is not authenticated.");
+        }
+
+        // Fetch borrowed books for the user
+        return bookService.getBooksBorrowedByUser(userEmail);
     }
 
 }

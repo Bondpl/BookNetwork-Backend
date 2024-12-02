@@ -18,8 +18,8 @@ public interface BookRepository extends JpaRepository<Book, UUID> {
     @Query("SELECT b FROM Book b WHERE b.owner.email = :userEmail")
     Collection<Book> findBooksOwnedByOwner(@Param("userEmail") String userEmail);
 
-    @Query("SELECT b FROM Book b JOIN b.ratings r WHERE r.rating > :minRating")
-    List<Book> findBooksByRatingGreaterThan(@Param("minRating") int minRating);
+    @Query("SELECT b FROM Book b WHERE (SELECT AVG(r.rating) FROM Rating r WHERE r.book = b) > 4")
+    List<Book> findBooksByRatingGreaterThan();
 
 
 }

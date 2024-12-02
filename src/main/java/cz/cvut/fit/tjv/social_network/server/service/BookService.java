@@ -62,6 +62,11 @@ public class BookService {
             throw new Exceptions.BookAlreadyBorrowedException("Book is already borrowed");
         }
 
+        // check if i want to borrwo my own book
+        if (book.getOwner().getUuid().equals(borrower.getUuid())) {
+            throw new Exceptions.BookNotFoundException("Cannot borrow your own book");
+        }
+
         // Update the book status to BORROWED
         book.setBookStatus(BookStatus.BORROWED);
         bookRepository.save(book);
@@ -150,8 +155,8 @@ public class BookService {
         return bookRepository.findAll();
     }
 
-    public Collection<Book> getBooksBorrowedByUser(UUID userUuid) {
-        Collection<Transaction> transactions = transactionRepository.findByBorrower_Uuid(userUuid);
+    public Collection<Book> getBooksBorrowedByUser(String userEmail) {
+        Collection<Transaction> transactions = transactionRepository.findByBorrower_Email(userEmail);
         return transactions.stream()
                 .map(Transaction::getBook)
                 .collect(Collectors.toList());
@@ -165,8 +170,8 @@ public class BookService {
         return bookRepository.save(book);
     }
 
-    public Collection<Book> findBooksByRatingGreaterThan(int minRating) {
-        return bookRepository.findBooksByRatingGreaterThan(minRating);
+    public Collection<Book> findBooksByRatingGreaterThan() {
+        return bookRepository.findBooksByRatingGreaterThan();
     }
 
     public Book getBookById(UUID uuid) {
