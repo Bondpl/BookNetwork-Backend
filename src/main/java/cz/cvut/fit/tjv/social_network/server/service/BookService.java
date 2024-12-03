@@ -9,9 +9,11 @@ import cz.cvut.fit.tjv.social_network.server.repository.BookRepository;
 import cz.cvut.fit.tjv.social_network.server.repository.TransactionRepository;
 import cz.cvut.fit.tjv.social_network.server.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -42,7 +44,6 @@ public class BookService {
 
 
     public Book borrowBook(BookBorrowDTO bookBorrowDTO) {
-        // Retrieve the currently authenticated user from the security context
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         // Ensure user is authenticated
@@ -129,9 +130,20 @@ public class BookService {
 
 
     public Book createBook(BookDTO bookDTO) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not authenticated");
+        }
+
+        User owner = userRepository.getUserByEmail(authentication.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+        bookDTO.setOwner(owner);
+
         if (bookDTO.getOwner() == null) {
             throw new Exceptions.OwnerRequiredException("Owner is required");
         }
+
         Book book = convertToBook(bookDTO);
         return bookRepository.save(book);
     }
@@ -170,7 +182,7 @@ public class BookService {
         return bookRepository.save(book);
     }
 
-    public Collection<Book> findBooksByRatingGreaterThan() {
+    public Collection<Book> findBooksByRatingGreaterThan4() {
         return bookRepository.findBooksByRatingGreaterThan();
     }
 

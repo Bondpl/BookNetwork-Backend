@@ -5,6 +5,7 @@ import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionIdDTO;
 import cz.cvut.fit.tjv.social_network.server.dto.transaction.TransactionUpdateDTO;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.Transaction;
+import cz.cvut.fit.tjv.social_network.server.model.User;
 import cz.cvut.fit.tjv.social_network.server.service.BookService;
 import cz.cvut.fit.tjv.social_network.server.service.TransactionService;
 import cz.cvut.fit.tjv.social_network.server.service.UserService;
@@ -34,7 +35,7 @@ public class TransactionController {
         return transactionService.getAllTransactions();
     }
 
-    @PostMapping("/create")
+    @PostMapping("/admin/create")
     public ResponseEntity<Transaction> createTransaction(@Valid @RequestBody TransactionDTO transactionDTO) {
         try {
             Transaction createdTransaction = transactionService.createTransaction(transactionDTO);
@@ -54,22 +55,16 @@ public class TransactionController {
         }
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping("/admin/delete")
     public void deleteTransaction(@Valid @RequestBody TransactionIdDTO uuid) {
         transactionService.removeTransaction(uuid.getUuid());
     }
 
     @GetMapping("/book")
-    public Collection<Transaction> getTransactionsOfBook(HttpServletRequest request) {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
+    public Collection<Transaction> getTransactionsOfBook() {
+        User user = userService.getCurrentUser();
 
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not authenticated");
-        }
-
-        String userEmail = authentication.getName(); // Replace with correct method if UUID is stored differently
-
-        return transactionService.findBorrowedTransactionsOfBooksOwnedByUser(userEmail);
+        return transactionService.findBorrowedTransactionsOfBooksOwnedByUser(user.getEmail());
     }
 
     @GetMapping("/transactions/{bookId}")
@@ -95,27 +90,17 @@ public class TransactionController {
     }
 
     @GetMapping("/user/borrowed")
-    public Collection<Book> findBooksBorrowedByUser(HttpServletRequest request) {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
+    public Collection<Book> findBooksBorrowedByUser() {
 
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not authenticated");
-        }
+        User user = userService.getCurrentUser();
 
-        String userEmail = authentication.getName(); // Replace with correct method if UUID is stored differently
-        return transactionService.findBooksBorrowedByUser(userEmail);
+        return transactionService.findBooksBorrowedByUser(user.getEmail());
     }
 
     @GetMapping("/user/lent")
-    public Collection<Book> findBooksLentByUser(HttpServletRequest request) {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
+    public Collection<Book> findBooksLentByUser() {
+        User user = userService.getCurrentUser();
 
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not authenticated");
-        }
-
-        // Retrieve the user's UUID from the authentication principal
-        UUID userUuid = UUID.fromString(authentication.getName());
-        return transactionService.findBooksLentByUser(userUuid);
+        return transactionService.findBooksLentByUser(user.getUuid());
     }
 }

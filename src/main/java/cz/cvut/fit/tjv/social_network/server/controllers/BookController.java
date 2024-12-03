@@ -5,11 +5,12 @@ import cz.cvut.fit.tjv.social_network.server.dto.book.BookDTO;
 import cz.cvut.fit.tjv.social_network.server.dto.book.BookIdDTO;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.BookStatus;
+import cz.cvut.fit.tjv.social_network.server.model.User;
+import cz.cvut.fit.tjv.social_network.server.repository.UserRepository;
 import cz.cvut.fit.tjv.social_network.server.service.BookService;
-import jakarta.servlet.http.HttpServletRequest;
+import cz.cvut.fit.tjv.social_network.server.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
@@ -21,6 +22,8 @@ import java.util.UUID;
 public class BookController {
 
     private final BookService bookService;
+    private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping
     public Collection<Book> getAllBooks() {
@@ -28,17 +31,8 @@ public class BookController {
     }
 
     @GetMapping("/ratingGreater")
-    public Collection<Book> getBooksByRatingGreaterThan(HttpServletRequest request) {
-        // Retrieve the user's authentication
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        // Retrieve the user's UUID from the session
-        String userEmail = authentication.getName();
-
-        // Ensure the user is authenticated
-        if (userEmail == null) {
-            throw new IllegalStateException("User is not authenticated.");
-        }
-        return bookService.findBooksByRatingGreaterThan();
+    public Collection<Book> getBooksByRatingGreaterThan4() {
+        return bookService.findBooksByRatingGreaterThan4();
     }
 
     @GetMapping("/status/{status}")
@@ -51,8 +45,13 @@ public class BookController {
         return bookService.getBookById(uuid);
     }
 
-    @PostMapping
+    @PostMapping("/admin/create")
     public Book createBook(@Valid @RequestBody BookDTO bookDTO) {
+        return bookService.createBook(bookDTO);
+    }
+
+    @PostMapping("/add")
+    public Book addBook(@Valid @RequestBody BookDTO bookDTO) {
         return bookService.createBook(bookDTO);
     }
 
@@ -72,35 +71,20 @@ public class BookController {
     }
 
     @GetMapping("/owned")
-    public Collection<Book> getBooksOwnedByOwner(HttpServletRequest request) {
-        // Retrieve the user's authentication
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        // Retrieve the user's UUID from the session
-        String userEmail = authentication.getName();
-
-        // Ensure the user is authenticated
-        if (userEmail == null) {
-            throw new IllegalStateException("User is not authenticated.");
-        }
+    public Collection<Book> getBooksOwnedByOwner() {
+        User user = userService.getCurrentUser();
 
         // Fetch owned books for the user
-        return bookService.getBooksOwnedByUser(userEmail);
+        return bookService.getBooksOwnedByUser(user.getEmail());
     }
 
     @GetMapping("/borrowed")
-    public Collection<Book> getBooksBorrowedByUser(HttpServletRequest request) {
+    public Collection<Book> getBooksBorrowedByUser() {
         // Retrieve the user's authentication
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        // Retrieve the user's UUID from the session
-        String userEmail = authentication.getName();
-
-        // Ensure the user is authenticated
-        if (userEmail == null) {
-            throw new IllegalStateException("User is not authenticated.");
-        }
+        User user = userService.getCurrentUser();
 
         // Fetch borrowed books for the user
-        return bookService.getBooksBorrowedByUser(userEmail);
+        return bookService.getBooksBorrowedByUser(user.getEmail());
     }
 
 }

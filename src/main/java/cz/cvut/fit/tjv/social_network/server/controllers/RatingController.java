@@ -43,7 +43,7 @@ public class RatingController {
         return ResponseEntity.status(HttpStatus.CREATED).body(rating);
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping("/admin/delete")
     public ResponseEntity<?> deleteRating(@RequestBody RatingIdDTO ratingIdDTO) {
         boolean deleted = ratingService.deleteRatingById(ratingIdDTO.getUuid());
 

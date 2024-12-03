@@ -9,6 +9,7 @@ import cz.cvut.fit.tjv.social_network.server.model.User;
 import cz.cvut.fit.tjv.social_network.server.repository.UserRepository;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -64,7 +65,7 @@ public class UserService implements UserDetailsService {
         user.setPassword(passwordEncoder.encode(userRegisterDTO.getPassword()));
         user.setDescription(userRegisterDTO.getDescription());
         user.setProfilePictureUrl(userRegisterDTO.getProfilePictureUrl());
-        user.setRole(userRegisterDTO.getRole());
+        user.setRole(Role.USER);
         userRepository.save(user);
         return mapToDTO(user);
     }
@@ -137,5 +138,21 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User with username " + email + " not found"));
     }
 
+
+    public User getCurrentUser() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        // Retrieve the user's UUID from the session
+        String userEmail = authentication.getName();
+
+        // Ensure the user is authenticated
+        if (userEmail == null) {
+            throw new IllegalStateException("User is not authenticated.");
+        }
+        // Retrieve the user from the database
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new Exceptions.UserNotFoundException("User with email " + userEmail + " does not exist"));
+
+        return user;
+    }
 
 }

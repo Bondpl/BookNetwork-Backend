@@ -29,7 +29,7 @@ public class UserController {
         return userService.getAllUsers();
     }
 
-    @PostMapping
+    @PostMapping("/register")
     public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserRegisterDTO userDTO) {
         try {
             UserDTO createdUser = userService.createUser(userDTO);
@@ -39,7 +39,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/batch")
+    @PostMapping("/admin/batch")
     public ResponseEntity<List<User>> createUsers(@RequestBody List<@Valid UserDTO> userDTOS) {
         try {
             List<User> createdUsers = userService.createUsers(userDTOS);
@@ -49,7 +49,7 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping("/admin/delete")
     public ResponseEntity<User> deleteUser(@Valid @RequestBody UserIdDTO userIdDTO) {
         try {
             User deletedUser = userService.deleteUser(userIdDTO);
@@ -59,7 +59,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/{uuid}")
+    @GetMapping("/admin/{uuid}")
     public ResponseEntity<User> getUserById(@PathVariable UUID uuid) {
         try {
             User user = userService.getUserById(uuid);
