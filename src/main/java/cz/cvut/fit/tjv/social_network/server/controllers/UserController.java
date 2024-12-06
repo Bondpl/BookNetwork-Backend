@@ -9,7 +9,6 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
@@ -73,7 +72,8 @@ public class UserController {
     public ResponseEntity<UserDTO> getSelf() {
         try {
             // Get the authenticated user from the SecurityContext and map it to UserDTO
-            UserDTO userDTO = mapToDTO((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+            UserDTO userDTO = mapToDTO(userService.getCurrentUser());
+            System.out.println(userDTO);
 
             return ResponseEntity.ok(userDTO);
         } catch (Exception e) {

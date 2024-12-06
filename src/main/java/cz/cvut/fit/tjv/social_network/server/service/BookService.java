@@ -170,6 +170,7 @@ public class BookService {
     public Collection<Book> getBooksBorrowedByUser(String userEmail) {
         Collection<Transaction> transactions = transactionRepository.findByBorrower_Email(userEmail);
         return transactions.stream()
+                .filter(transaction -> transaction.getStatus() == TransactionStatus.ONGOING)
                 .map(Transaction::getBook)
                 .collect(Collectors.toList());
     }

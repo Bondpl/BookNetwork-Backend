@@ -6,7 +6,6 @@ import cz.cvut.fit.tjv.social_network.server.dto.book.BookIdDTO;
 import cz.cvut.fit.tjv.social_network.server.model.Book;
 import cz.cvut.fit.tjv.social_network.server.model.BookStatus;
 import cz.cvut.fit.tjv.social_network.server.model.User;
-import cz.cvut.fit.tjv.social_network.server.repository.UserRepository;
 import cz.cvut.fit.tjv.social_network.server.service.BookService;
 import cz.cvut.fit.tjv.social_network.server.service.UserService;
 import jakarta.validation.Valid;
@@ -22,7 +21,6 @@ import java.util.UUID;
 public class BookController {
 
     private final BookService bookService;
-    private final UserRepository userRepository;
     private final UserService userService;
 
     @GetMapping

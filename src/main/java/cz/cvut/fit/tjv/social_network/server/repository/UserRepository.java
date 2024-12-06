@@ -20,4 +20,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     boolean existsByUsername(@NotNull(message = "Username is required") String username);
 
     Optional<User> getUserByEmail(@Param("email") String email);
+
 }
