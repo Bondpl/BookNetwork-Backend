@@ -7,13 +7,9 @@ import java.util.UUID;
 
 @Data
 public class RatingDTO {
-
-
+    
     @NotNull(message = "Book ID is required")
     private UUID bookId;
-
-    @NotNull(message = "User ID is required")
-    private UUID userId;
 
     @NotNull(message = "Rating is required")
     private int rating;

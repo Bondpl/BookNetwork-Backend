@@ -31,16 +31,20 @@ public class RatingController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<?> createRating(@RequestBody RatingDTO ratingDTO) {
-        Book book = bookService.getBookById(ratingDTO.getBookId());
-        User user = userService.getUserById(ratingDTO.getUserId());
+    public ResponseEntity<?> createRating(@RequestBody @Valid RatingDTO ratingDTO) {
+        try {
+            User user = userService.getCurrentUser();
+            Book book = bookService.getBookById(ratingDTO.getBookId());
 
-        if (book == null || user == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid book or user ID");
+            if (book == null || user == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid book or user ID");
+            }
+
+            Rating rating = ratingService.createRating(book, user, ratingDTO.getRating());
+            return ResponseEntity.status(HttpStatus.CREATED).body(rating);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the rating");
         }
-
-        Rating rating = ratingService.CreateRating(book, user, ratingDTO.getRating());
-        return ResponseEntity.status(HttpStatus.CREATED).body(rating);
     }
 
     @DeleteMapping("/admin/delete")
