@@ -9,6 +9,10 @@ import cz.cvut.fit.tjv.social_network.server.model.User;
 import cz.cvut.fit.tjv.social_network.server.repository.UserRepository;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,11 +22,21 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
-
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private PasswordEncoder passwordEncoder;
     private UserRepository userRepository;
+
+    public static UserDTO getUserDTO(User user) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUuid(user.getUuid());
+        userDTO.setUsername(user.getUsername());
+        userDTO.setEmail(user.getEmail());
+        userDTO.setDescription(user.getDescription());
+        userDTO.setProfilePictureUrl(user.getProfilePictureUrl());
+        userDTO.setRole(user.getRole());
+        return userDTO;
+    }
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -51,20 +65,13 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(userRegisterDTO.getPassword()));
         user.setDescription(userRegisterDTO.getDescription());
         user.setProfilePictureUrl(userRegisterDTO.getProfilePictureUrl());
-        user.setRole(userRegisterDTO.getRole());
+        user.setRole(Role.USER);
         userRepository.save(user);
         return mapToDTO(user);
     }
 
     private UserDTO mapToDTO(User user) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUuid(user.getUuid());
-        userDTO.setUsername(user.getUsername());
-        userDTO.setEmail(user.getEmail());
-        userDTO.setDescription(user.getDescription());
-        userDTO.setProfilePictureUrl(user.getProfilePictureUrl());
-        userDTO.setRole(user.getRole());
-        return userDTO;
+        return getUserDTO(user);
     }
 
     public User getUserById(UUID uuid) {
@@ -124,4 +131,28 @@ public class UserService {
                 .orElseThrow(() -> new Exceptions.UserNotFoundException("User with email " + email + " does not exist"));
         return mapToDTO(user);
     }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User with username " + username + " not found"));
+    }
+
+
+    public User getCurrentUser() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        // Retrieve the user's UUID from the session
+        String userEmail = authentication.getName();
+
+        // Ensure the user is authenticated
+        if (userEmail == null) {
+            throw new IllegalStateException("User is not authenticated.");
+        }
+        // Retrieve the user from the database
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new Exceptions.UserNotFoundException("User with email " + userEmail + " does not exist"));
+
+        return user;
+    }
+
 }

@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import static cz.cvut.fit.tjv.social_network.server.service.UserService.getUserDTO;
+
 @RestController
 @RequestMapping("/users")
 @AllArgsConstructor
@@ -26,7 +28,7 @@ public class UserController {
         return userService.getAllUsers();
     }
 
-    @PostMapping
+    @PostMapping("/register")
     public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserRegisterDTO userDTO) {
         try {
             UserDTO createdUser = userService.createUser(userDTO);
@@ -36,7 +38,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/batch")
+    @PostMapping("/admin/batch")
     public ResponseEntity<List<User>> createUsers(@RequestBody List<@Valid UserDTO> userDTOS) {
         try {
             List<User> createdUsers = userService.createUsers(userDTOS);
@@ -46,7 +48,7 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping("/admin/delete")
     public ResponseEntity<User> deleteUser(@Valid @RequestBody UserIdDTO userIdDTO) {
         try {
             User deletedUser = userService.deleteUser(userIdDTO);
@@ -56,7 +58,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/{uuid}")
+    @GetMapping("/admin/{uuid}")
     public ResponseEntity<User> getUserById(@PathVariable UUID uuid) {
         try {
             User user = userService.getUserById(uuid);
@@ -65,4 +67,24 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
+
+    @GetMapping("/self")
+    public ResponseEntity<UserDTO> getSelf() {
+        try {
+            // Get the authenticated user from the SecurityContext and map it to UserDTO
+            UserDTO userDTO = mapToDTO(userService.getCurrentUser());
+            System.out.println(userDTO);
+
+            return ResponseEntity.ok(userDTO);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+    }
+
+
+    private UserDTO mapToDTO(User user) {
+        return getUserDTO(user);
+    }
+
+
 }

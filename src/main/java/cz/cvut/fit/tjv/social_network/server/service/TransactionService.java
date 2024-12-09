@@ -74,6 +74,14 @@ public class TransactionService {
         return transactionRepository.findAllByBookUuid(bookId);
     }
 
+    public Collection<Transaction> getTransactionsOfBooksOwnedByUser(String userEmail) {
+        return transactionRepository.findByBorrower_Email(userEmail);
+    }
+
+    public Collection<Transaction> findBorrowedTransactionsOfBooksOwnedByUser(String userEmail) {
+        return transactionRepository.findBorrowedTransactionsOfBooksOwnedByUser(userEmail);
+    }
+
     public Transaction updateTransactionStatus(TransactionUpdateDTO transactionUpdateDTO) {
         UUID transactionId = transactionUpdateDTO.getUuid();
 
@@ -87,5 +95,12 @@ public class TransactionService {
         transaction.setStatus(transactionUpdateDTO.getStatus());
         return transactionRepository.save(transaction);
     }
-    
+
+    public Collection<Book> findBooksBorrowedByUser(String userName) {
+        return transactionRepository.findBooksBorrowedByUser(userName);
+    }
+
+    public Collection<Book> findBooksLentByUser(UUID userUuid) {
+        return transactionRepository.findBooksLentByUser(userUuid);
+    }
 }

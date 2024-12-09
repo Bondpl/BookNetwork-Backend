@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 public class RatingService {
     private RatingRepository ratingRepository;
 
-    public Rating CreateRating(Book book, User user, int rating) {
+    public Rating createRating(Book book, User user, int rating) {
         Rating r = new Rating();
 
         if (rating < 0 || rating > 5) {
