@@ -5,13 +5,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class ServerApplicationTests {
-//	static {
-//		System.setProperty("SPRING_DATASOURCE_URL", "localhost:5432");
-//		System.setProperty("SPRING_DATASOURCE_USERNAME", "user");
-//		System.setProperty("SPRING_DATASOURCE_PASSWORD", "pass");
-//	}
-//
-//	@Test
-//	void contextLoads() {
-//	}
+    static {
+        System.setProperty("SPRING_DATASOURCE_URL", "jdbc:postgresql://localhost:5432/database");
+        System.setProperty("SPRING_DATASOURCE_USERNAME", "user");
+        System.setProperty("SPRING_DATASOURCE_PASSWORD", "pass");
+    }
+
+    @Test
+    void contextLoads() {
+    }
 }

@@ -1,17 +1,18 @@
-# Use the official OpenJDK image as a base image
-FROM openjdk:17-jdk-slim
+#Build stage
+FROM gradle:8.10.2-jdk21 AS build
+WORKDIR /usr/app/
+COPY . .
+RUN gradle build
 
-# Add a volume pointing to /tmp
-VOLUME /tmp
+# Package stage
+FROM openjdk:21-jdk
 
-# Make port 8080 available to the world outside this container
-EXPOSE 8080
+ENV JAR_NAME=app.jar
+ENV APP_HOME=/usr/app
 
-# The application's jar file
-ARG JAR_FILE=build/libs/server-0.0.1-SNAPSHOT.jar
+WORKDIR $APP_HOME
+COPY --from=BUILD $APP_HOME .
 
-# Add the application's jar to the container
-ADD ${JAR_FILE} app.jar
+RUN mv $(ls /usr/app/build/libs/*SNAPSHOT.jar | grep -v "plain") /usr/app/build/libs/$JAR_NAME
 
-# Run the jar file
-ENTRYPOINT ["java","-jar","/app.jar"]
+ENTRYPOINT exec java -jar $APP_HOME/build/libs/$JAR_NAME
