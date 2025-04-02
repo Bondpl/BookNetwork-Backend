@@ -41,7 +41,7 @@ jobs:
       - name: Install PostgreSQL client
         run: |
           apt-get update
-          apt-get install -y postgresql-client netcat
+          apt-get install -y postgresql-client netcat-openbsd
 
       - name: Debug Environment Variables
         run: |
