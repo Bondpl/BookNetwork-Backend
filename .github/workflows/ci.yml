@@ -15,7 +15,6 @@ jobs:
   build:
     name: Build & Test
     runs-on: ubuntu-latest
-    environment: production
     container:
       image: openjdk:21-slim
 
@@ -24,12 +23,12 @@ jobs:
         image: postgres:15
         env:
           POSTGRES_DB: database
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: pass
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U user -d database"
+          --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -42,12 +41,6 @@ jobs:
         run: |
           apt-get update
           apt-get install -y postgresql-client netcat-openbsd
-
-      - name: Debug Environment Variables
-        run: |
-          echo "Database URL=jdbc:postgresql://postgres:5432/database"
-          echo "Database Username=${{ secrets.SPRING_DATASOURCE_USERNAME }}"
-          echo "Database Password=${{ secrets.SPRING_DATASOURCE_PASSWORD }}"
 
       - name: Wait for PostgreSQL to be Ready
         run: |
@@ -62,25 +55,20 @@ jobs:
       - name: Set Executable Permission for Gradle Wrapper
         run: chmod +x gradlew
 
-      - name: Create Database User with Privileges
-        run: |
-          PGPASSWORD=postgres psql -h postgres -U postgres -d database -c "CREATE USER ${{ secrets.SPRING_DATASOURCE_USERNAME }} WITH PASSWORD '${{ secrets.SPRING_DATASOURCE_PASSWORD }}';"
-          PGPASSWORD=postgres psql -h postgres -U postgres -d database -c "GRANT ALL PRIVILEGES ON DATABASE database TO ${{ secrets.SPRING_DATASOURCE_USERNAME }};"
-
       - name: Check Database Connection
         run: |
-          PGPASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }} psql -h postgres -U ${{ secrets.SPRING_DATASOURCE_USERNAME }} -d database -c "SELECT 'Connected to PostgreSQL!'"
+          PGPASSWORD=postgres psql -h postgres -U postgres -d database -c "SELECT 'Connected to PostgreSQL!'"
 
       - name: Build with Gradle
         run: ./gradlew clean build
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/database
-          SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres
 
       - name: Run Tests
         run: ./gradlew test
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/database
-          SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres
