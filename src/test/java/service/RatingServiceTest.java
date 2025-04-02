@@ -49,7 +49,7 @@ class RatingServiceTest {
 
         when(ratingRepository.save(any(Rating.class))).thenReturn(rating);
 
-        Rating savedRating = ratingService.CreateRating(book, user, ratingValue);
+        Rating savedRating = ratingService.createRating(book, user, ratingValue);
 
         assertNotNull(savedRating);
         assertEquals(book, savedRating.getBook());
