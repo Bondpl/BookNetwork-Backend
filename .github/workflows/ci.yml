@@ -27,7 +27,7 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: ${{ secrets.SPRING_DATASOURCE_URL}}
+          POSTGRES_DB: database
           POSTGRES_USER: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
           POSTGRES_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
         ports:
