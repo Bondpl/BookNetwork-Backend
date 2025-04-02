@@ -13,8 +13,7 @@ import cz.cvut.fit.tjv.social_network.server.service.BookService;
 import cz.cvut.fit.tjv.social_network.server.service.TransactionService;
 import cz.cvut.fit.tjv.social_network.server.service.UserService;
 import jdk.jfr.Name;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -51,6 +50,11 @@ class TransactionServiceTest {
         lenderUuid = UUID.randomUUID();
         bookUuid = UUID.randomUUID();
         transactionUuid = UUID.randomUUID();
+    }
+
+    @AfterEach
+    void tearDown(TestInfo testInfo) {
+        System.out.println("Test PASSED: " + testInfo.getDisplayName());
     }
 
     @Test

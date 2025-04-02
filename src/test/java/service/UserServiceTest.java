@@ -8,8 +8,10 @@ import cz.cvut.fit.tjv.social_network.server.model.Role;
 import cz.cvut.fit.tjv.social_network.server.model.User;
 import cz.cvut.fit.tjv.social_network.server.repository.UserRepository;
 import cz.cvut.fit.tjv.social_network.server.service.UserService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -42,6 +44,11 @@ class UserServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+    }
+
+    @AfterEach
+    void tearDown(TestInfo testInfo) {
+        System.out.println("Test PASSED: " + testInfo.getDisplayName());
     }
 
     @Test
