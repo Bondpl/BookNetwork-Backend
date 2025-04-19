@@ -1,0 +1,74 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+      - test-branch
+      - CI
+  pull_request:
+    branches:
+      - main
+      - test-branch
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    container:
+      image: openjdk:21-slim
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: database
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          apt-get update
+          apt-get install -y postgresql-client netcat-openbsd
+
+      - name: Wait for PostgreSQL to be Ready
+        run: |
+          echo "Waiting for PostgreSQL to be ready..."
+          for i in {1..30}; do
+            nc -z postgres 5432 && echo "PostgreSQL is ready!" && exit 0
+            echo "Waiting..."
+            sleep 2
+          done
+          echo "PostgreSQL did not start in time" && exit 1
+
+      - name: Set Executable Permission for Gradle Wrapper
+        run: chmod +x gradlew
+
+      - name: Check Database Connection
+        run: |
+          PGPASSWORD=postgres psql -h postgres -U postgres -d database -c "SELECT 'Connected to PostgreSQL!'"
+
+      - name: Build with Gradle
+        run: ./gradlew clean build
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/database
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres
+
+      - name: Run Tests
+        run: ./gradlew test --tests "service.*" --info
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/database
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres

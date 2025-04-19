@@ -8,8 +8,10 @@ import cz.cvut.fit.tjv.social_network.server.model.Rating;
 import cz.cvut.fit.tjv.social_network.server.model.User;
 import cz.cvut.fit.tjv.social_network.server.repository.RatingRepository;
 import cz.cvut.fit.tjv.social_network.server.service.RatingService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -36,6 +38,11 @@ class RatingServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
+    @AfterEach
+    void tearDown(TestInfo testInfo) {
+        System.out.println("Test PASSED: " + testInfo.getDisplayName());
+    }
+
     @Test
     void testCreateRating() {
         Book book = new Book();
@@ -49,7 +56,7 @@ class RatingServiceTest {
 
         when(ratingRepository.save(any(Rating.class))).thenReturn(rating);
 
-        Rating savedRating = ratingService.CreateRating(book, user, ratingValue);
+        Rating savedRating = ratingService.createRating(book, user, ratingValue);
 
         assertNotNull(savedRating);
         assertEquals(book, savedRating.getBook());

@@ -72,16 +72,13 @@ public class BookController {
     public Collection<Book> getBooksOwnedByOwner() {
         User user = userService.getCurrentUser();
 
-        // Fetch owned books for the user
         return bookService.getBooksOwnedByUser(user.getEmail());
     }
 
     @GetMapping("/borrowed")
     public Collection<Book> getBooksBorrowedByUser() {
-        // Retrieve the user's authentication
         User user = userService.getCurrentUser();
 
-        // Fetch borrowed books for the user
         return bookService.getBooksBorrowedByUser(user.getEmail());
     }
 
