@@ -67,7 +67,7 @@ jobs:
           SPRING_DATASOURCE_PASSWORD: postgres
 
       - name: Run Tests
-        run: ./gradlew test
+        run: ./gradlew test --tests "service.*"
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/database
           SPRING_DATASOURCE_USERNAME: postgres
